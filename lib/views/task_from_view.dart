@@ -72,7 +72,9 @@ class _TaskFormViewState extends ConsumerState<TaskFormView> {
             ),
             ElevatedButton(
               onPressed: () {
-                if (_selectedDateTime != null && _titleController.text != '') {
+                if (_selectedDateTime != null &&
+                    _titleController.text != '' &&
+                    _selectedDateTime!.isAfter(DateTime.now())) {
                   final newTask = Task(
                     id: widget.task?.id,
                     title: _titleController.text,

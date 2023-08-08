@@ -14,18 +14,12 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
 
-Task _$TaskFromJson(Map<String, dynamic> json) {
-  return _Task.fromJson(json);
-}
-
 /// @nodoc
 mixin _$Task {
-  int? get id => throw _privateConstructorUsedError;
+  int get id => throw _privateConstructorUsedError;
   String get title => throw _privateConstructorUsedError;
   DateTime get dueDate => throw _privateConstructorUsedError;
-  TaskStatus get status => throw _privateConstructorUsedError;
 
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
   $TaskCopyWith<Task> get copyWith => throw _privateConstructorUsedError;
 }
@@ -35,7 +29,7 @@ abstract class $TaskCopyWith<$Res> {
   factory $TaskCopyWith(Task value, $Res Function(Task) then) =
       _$TaskCopyWithImpl<$Res, Task>;
   @useResult
-  $Res call({int? id, String title, DateTime dueDate, TaskStatus status});
+  $Res call({int id, String title, DateTime dueDate});
 }
 
 /// @nodoc
@@ -51,16 +45,15 @@ class _$TaskCopyWithImpl<$Res, $Val extends Task>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = freezed,
+    Object? id = null,
     Object? title = null,
     Object? dueDate = null,
-    Object? status = null,
   }) {
     return _then(_value.copyWith(
-      id: freezed == id
+      id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
-              as int?,
+              as int,
       title: null == title
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
@@ -69,10 +62,6 @@ class _$TaskCopyWithImpl<$Res, $Val extends Task>
           ? _value.dueDate
           : dueDate // ignore: cast_nullable_to_non_nullable
               as DateTime,
-      status: null == status
-          ? _value.status
-          : status // ignore: cast_nullable_to_non_nullable
-              as TaskStatus,
     ) as $Val);
   }
 }
@@ -83,7 +72,7 @@ abstract class _$$_TaskCopyWith<$Res> implements $TaskCopyWith<$Res> {
       __$$_TaskCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({int? id, String title, DateTime dueDate, TaskStatus status});
+  $Res call({int id, String title, DateTime dueDate});
 }
 
 /// @nodoc
@@ -95,16 +84,15 @@ class __$$_TaskCopyWithImpl<$Res> extends _$TaskCopyWithImpl<$Res, _$_Task>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = freezed,
+    Object? id = null,
     Object? title = null,
     Object? dueDate = null,
-    Object? status = null,
   }) {
     return _then(_$_Task(
-      id: freezed == id
+      id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
-              as int?,
+              as int,
       title: null == title
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
@@ -113,37 +101,25 @@ class __$$_TaskCopyWithImpl<$Res> extends _$TaskCopyWithImpl<$Res, _$_Task>
           ? _value.dueDate
           : dueDate // ignore: cast_nullable_to_non_nullable
               as DateTime,
-      status: null == status
-          ? _value.status
-          : status // ignore: cast_nullable_to_non_nullable
-              as TaskStatus,
     ));
   }
 }
 
 /// @nodoc
-@JsonSerializable()
-class _$_Task implements _Task {
-  _$_Task(
-      {this.id,
-      required this.title,
-      required this.dueDate,
-      required this.status});
 
-  factory _$_Task.fromJson(Map<String, dynamic> json) => _$$_TaskFromJson(json);
+class _$_Task implements _Task {
+  const _$_Task({required this.id, required this.title, required this.dueDate});
 
   @override
-  final int? id;
+  final int id;
   @override
   final String title;
   @override
   final DateTime dueDate;
-  @override
-  final TaskStatus status;
 
   @override
   String toString() {
-    return 'Task(id: $id, title: $title, dueDate: $dueDate, status: $status)';
+    return 'Task(id: $id, title: $title, dueDate: $dueDate)';
   }
 
   @override
@@ -153,45 +129,31 @@ class _$_Task implements _Task {
             other is _$_Task &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.title, title) || other.title == title) &&
-            (identical(other.dueDate, dueDate) || other.dueDate == dueDate) &&
-            (identical(other.status, status) || other.status == status));
+            (identical(other.dueDate, dueDate) || other.dueDate == dueDate));
   }
 
-  @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(runtimeType, id, title, dueDate, status);
+  int get hashCode => Object.hash(runtimeType, id, title, dueDate);
 
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$_TaskCopyWith<_$_Task> get copyWith =>
       __$$_TaskCopyWithImpl<_$_Task>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$_TaskToJson(
-      this,
-    );
-  }
 }
 
 abstract class _Task implements Task {
-  factory _Task(
-      {final int? id,
+  const factory _Task(
+      {required final int id,
       required final String title,
-      required final DateTime dueDate,
-      required final TaskStatus status}) = _$_Task;
-
-  factory _Task.fromJson(Map<String, dynamic> json) = _$_Task.fromJson;
+      required final DateTime dueDate}) = _$_Task;
 
   @override
-  int? get id;
+  int get id;
   @override
   String get title;
   @override
   DateTime get dueDate;
-  @override
-  TaskStatus get status;
   @override
   @JsonKey(ignore: true)
   _$$_TaskCopyWith<_$_Task> get copyWith => throw _privateConstructorUsedError;

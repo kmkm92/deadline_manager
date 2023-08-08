@@ -17,7 +17,7 @@ class AppDatabase extends _$AppDatabase {
 
   Future<List<Task>> getAllTasks() => select(tasks).get();
 
-  Future<void> insertTask(Task task) => into(tasks).insert(task);
+  Future<int> insertTask(Task task) => into(tasks).insert(task);
 
   Future<void> updateTask(Task task) => update(tasks).replace(task);
 

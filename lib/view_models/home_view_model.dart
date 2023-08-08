@@ -28,8 +28,8 @@ class TaskListNotifier extends StateNotifier<List<Task>> {
     final db = await _ref.read(provideDatabase.future);
     if (task.id == null) {
       // 新しいタスクを追加
-      await db.insertTask(task);
-      scheduleNotification(0, task.title, task.dueDate);
+      final insertId = await db.insertTask(task);
+      scheduleNotification(insertId, task.title, task.dueDate);
     } else {
       // 既存のタスクを更新
       await db.updateTask(task);

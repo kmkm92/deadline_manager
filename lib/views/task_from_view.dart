@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_datetime_picker_plus/flutter_datetime_picker_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-// import 'package:deadline_manager/models/task.dart';
+import 'package:flutter_datetime_picker_plus/flutter_datetime_picker_plus.dart'
+    as picker; // 追加
 import 'package:deadline_manager/view_models/home_view_model.dart';
 import 'package:deadline_manager/database.dart';
 
@@ -44,30 +46,16 @@ class _TaskFormViewState extends ConsumerState<TaskFormView> {
                   ? 'Select Due Date and Time'
                   : "${_selectedDateTime!.toIso8601String().split('T')[0]} ${TimeOfDay.fromDateTime(_selectedDateTime!).format(context)}"),
               trailing: Icon(Icons.calendar_today),
-              onTap: () async {
-                DateTime? pickedDate = await showDatePicker(
-                  context: context,
-                  initialDate: _selectedDateTime ?? DateTime.now(),
-                  firstDate: DateTime(2000),
-                  lastDate: DateTime(2101),
-                );
-                if (pickedDate != null) {
-                  TimeOfDay? pickedTime = await showTimePicker(
-                    context: context,
-                    initialTime: TimeOfDay.fromDateTime(pickedDate),
-                  );
-                  if (pickedTime != null) {
-                    setState(() {
-                      _selectedDateTime = DateTime(
-                        pickedDate.year,
-                        pickedDate.month,
-                        pickedDate.day,
-                        pickedTime.hour,
-                        pickedTime.minute,
-                      );
-                    });
-                  }
-                }
+              onTap: () {
+                picker.DatePicker.showDateTimePicker(context,
+                    showTitleActions: true,
+                    onChanged: (date) {}, onConfirm: (date) {
+                  setState(() {
+                    _selectedDateTime = date;
+                  });
+                },
+                    currentTime: _selectedDateTime ?? DateTime.now(),
+                    locale: LocaleType.jp);
               },
             ),
             ElevatedButton(

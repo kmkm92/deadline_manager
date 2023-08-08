@@ -36,7 +36,7 @@ class TaskFormView extends ConsumerWidget {
             ElevatedButton(
               onPressed: () {
                 final newTask = Task(
-                  id: task?.id ?? 0,
+                  id: task?.id,
                   title: _titleController.text,
                   dueDate: DateTime.parse(_dueDateController.text),
                 );

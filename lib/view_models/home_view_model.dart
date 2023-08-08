@@ -22,12 +22,11 @@ class TaskListNotifier extends StateNotifier<List<Task>> {
 
   Future<void> addOrUpdateTask(Task task) async {
     final db = await _ref.read(provideDatabase.future);
-    final tasks = await db.getAllTasks();
-    print(task.id);
-    // print(tasks[0].id);
-    if (task.id == 0) {
+    if (task.id == null) {
+      // 新しいタスクを追加
       await db.insertTask(task);
     } else {
+      // 既存のタスクを更新
       await db.updateTask(task);
     }
     _loadTasks();

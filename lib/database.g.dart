@@ -11,7 +11,7 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
-      'id', aliasedName, false,
+      'id', aliasedName, true,
       hasAutoIncrement: true,
       type: DriftSqlType.int,
       requiredDuringInsert: false,
@@ -67,7 +67,7 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return Task(
       id: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+          .read(DriftSqlType.int, data['${effectivePrefix}id']),
       title: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
       dueDate: attachedDatabase.typeMapping
@@ -82,14 +82,16 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
 }
 
 class Task extends DataClass implements Insertable<Task> {
-  final int id;
+  final int? id;
   final String title;
   final DateTime dueDate;
-  const Task({required this.id, required this.title, required this.dueDate});
+  const Task({this.id, required this.title, required this.dueDate});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
+    if (!nullToAbsent || id != null) {
+      map['id'] = Variable<int>(id);
+    }
     map['title'] = Variable<String>(title);
     map['due_date'] = Variable<DateTime>(dueDate);
     return map;
@@ -97,7 +99,7 @@ class Task extends DataClass implements Insertable<Task> {
 
   TasksCompanion toCompanion(bool nullToAbsent) {
     return TasksCompanion(
-      id: Value(id),
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
       title: Value(title),
       dueDate: Value(dueDate),
     );
@@ -107,7 +109,7 @@ class Task extends DataClass implements Insertable<Task> {
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Task(
-      id: serializer.fromJson<int>(json['id']),
+      id: serializer.fromJson<int?>(json['id']),
       title: serializer.fromJson<String>(json['title']),
       dueDate: serializer.fromJson<DateTime>(json['dueDate']),
     );
@@ -116,14 +118,18 @@ class Task extends DataClass implements Insertable<Task> {
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
+      'id': serializer.toJson<int?>(id),
       'title': serializer.toJson<String>(title),
       'dueDate': serializer.toJson<DateTime>(dueDate),
     };
   }
 
-  Task copyWith({int? id, String? title, DateTime? dueDate}) => Task(
-        id: id ?? this.id,
+  Task copyWith(
+          {Value<int?> id = const Value.absent(),
+          String? title,
+          DateTime? dueDate}) =>
+      Task(
+        id: id.present ? id.value : this.id,
         title: title ?? this.title,
         dueDate: dueDate ?? this.dueDate,
       );
@@ -149,7 +155,7 @@ class Task extends DataClass implements Insertable<Task> {
 }
 
 class TasksCompanion extends UpdateCompanion<Task> {
-  final Value<int> id;
+  final Value<int?> id;
   final Value<String> title;
   final Value<DateTime> dueDate;
   const TasksCompanion({
@@ -176,7 +182,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
   }
 
   TasksCompanion copyWith(
-      {Value<int>? id, Value<String>? title, Value<DateTime>? dueDate}) {
+      {Value<int?>? id, Value<String>? title, Value<DateTime>? dueDate}) {
     return TasksCompanion(
       id: id ?? this.id,
       title: title ?? this.title,

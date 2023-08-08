@@ -16,7 +16,7 @@ final _privateConstructorUsedError = UnsupportedError(
 
 /// @nodoc
 mixin _$Task {
-  int get id => throw _privateConstructorUsedError;
+  int? get id => throw _privateConstructorUsedError;
   String get title => throw _privateConstructorUsedError;
   DateTime get dueDate => throw _privateConstructorUsedError;
 
@@ -29,7 +29,7 @@ abstract class $TaskCopyWith<$Res> {
   factory $TaskCopyWith(Task value, $Res Function(Task) then) =
       _$TaskCopyWithImpl<$Res, Task>;
   @useResult
-  $Res call({int id, String title, DateTime dueDate});
+  $Res call({int? id, String title, DateTime dueDate});
 }
 
 /// @nodoc
@@ -45,15 +45,15 @@ class _$TaskCopyWithImpl<$Res, $Val extends Task>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
+    Object? id = freezed,
     Object? title = null,
     Object? dueDate = null,
   }) {
     return _then(_value.copyWith(
-      id: null == id
+      id: freezed == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
-              as int,
+              as int?,
       title: null == title
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
@@ -72,7 +72,7 @@ abstract class _$$_TaskCopyWith<$Res> implements $TaskCopyWith<$Res> {
       __$$_TaskCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({int id, String title, DateTime dueDate});
+  $Res call({int? id, String title, DateTime dueDate});
 }
 
 /// @nodoc
@@ -84,15 +84,15 @@ class __$$_TaskCopyWithImpl<$Res> extends _$TaskCopyWithImpl<$Res, _$_Task>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
+    Object? id = freezed,
     Object? title = null,
     Object? dueDate = null,
   }) {
     return _then(_$_Task(
-      id: null == id
+      id: freezed == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
-              as int,
+              as int?,
       title: null == title
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
@@ -111,7 +111,7 @@ class _$_Task implements _Task {
   const _$_Task({required this.id, required this.title, required this.dueDate});
 
   @override
-  final int id;
+  final int? id;
   @override
   final String title;
   @override
@@ -144,12 +144,12 @@ class _$_Task implements _Task {
 
 abstract class _Task implements Task {
   const factory _Task(
-      {required final int id,
+      {required final int? id,
       required final String title,
       required final DateTime dueDate}) = _$_Task;
 
   @override
-  int get id;
+  int? get id;
   @override
   String get title;
   @override

@@ -6,7 +6,7 @@ part 'task.freezed.dart';
 
 @DataClassName('Task')
 class Tasks extends Table {
-  IntColumn get id => integer().autoIncrement()();
+  IntColumn get id => integer().autoIncrement().nullable()();
   TextColumn get title => text().withLength(min: 1, max: 100)();
   DateTimeColumn get dueDate => dateTime()();
 }
@@ -14,7 +14,7 @@ class Tasks extends Table {
 @freezed
 class Task with _$Task {
   const factory Task({
-    required int id,
+    required int? id,
     required String title,
     required DateTime dueDate,
   }) = _Task;

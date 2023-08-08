@@ -4,23 +4,33 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:deadline_manager/view_models/home_view_model.dart';
 import 'package:deadline_manager/database.dart';
 
-class TaskFormView extends ConsumerWidget {
+class TaskFormView extends ConsumerStatefulWidget {
   final Task? task;
 
   TaskFormView({this.task});
 
+  @override
+  _TaskFormViewState createState() => _TaskFormViewState();
+}
+
+class _TaskFormViewState extends ConsumerState<TaskFormView> {
   final _titleController = TextEditingController();
-  final _dueDateController = TextEditingController();
+  DateTime? _selectedDateTime;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    if (task != null) {
-      _titleController.text = task!.title;
-      _dueDateController.text = task!.dueDate.toIso8601String();
+  void initState() {
+    super.initState();
+    if (widget.task != null) {
+      _titleController.text = widget.task!.title;
+      _selectedDateTime = widget.task!.dueDate;
     }
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(task == null ? 'Add Task' : 'Edit Task')),
+      appBar:
+          AppBar(title: Text(widget.task == null ? 'Add Task' : 'Edit Task')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -29,21 +39,52 @@ class TaskFormView extends ConsumerWidget {
               controller: _titleController,
               decoration: InputDecoration(labelText: 'Title'),
             ),
-            TextField(
-              controller: _dueDateController,
-              decoration: InputDecoration(labelText: 'Due Date (YYYY-MM-DD)'),
+            ListTile(
+              title: Text(_selectedDateTime == null
+                  ? 'Select Due Date and Time'
+                  : "${_selectedDateTime!.toIso8601String().split('T')[0]} ${TimeOfDay.fromDateTime(_selectedDateTime!).format(context)}"),
+              trailing: Icon(Icons.calendar_today),
+              onTap: () async {
+                DateTime? pickedDate = await showDatePicker(
+                  context: context,
+                  initialDate: _selectedDateTime ?? DateTime.now(),
+                  firstDate: DateTime(2000),
+                  lastDate: DateTime(2101),
+                );
+                if (pickedDate != null) {
+                  TimeOfDay? pickedTime = await showTimePicker(
+                    context: context,
+                    initialTime: TimeOfDay.fromDateTime(pickedDate),
+                  );
+                  if (pickedTime != null) {
+                    setState(() {
+                      _selectedDateTime = DateTime(
+                        pickedDate.year,
+                        pickedDate.month,
+                        pickedDate.day,
+                        pickedTime.hour,
+                        pickedTime.minute,
+                      );
+                    });
+                  }
+                }
+              },
             ),
             ElevatedButton(
               onPressed: () {
-                final newTask = Task(
-                  id: task?.id,
-                  title: _titleController.text,
-                  dueDate: DateTime.parse(_dueDateController.text),
-                );
-                ref.read(taskListProvider.notifier).addOrUpdateTask(newTask);
-                Navigator.pop(context);
+                if (_selectedDateTime != null && _titleController.text != '') {
+                  final newTask = Task(
+                    id: widget.task?.id,
+                    title: _titleController.text,
+                    dueDate: _selectedDateTime!,
+                  );
+                  ref.read(taskListProvider.notifier).addOrUpdateTask(newTask);
+                  Navigator.pop(context);
+                } else {
+                  // 日付や時間が選択されていない場合のエラーハンドリングをここに追加できます。
+                }
               },
-              child: Text(task == null ? 'Add' : 'Update'),
+              child: Text(widget.task == null ? 'Add' : 'Update'),
             ),
           ],
         ),

@@ -13,7 +13,19 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(QueryExecutor e) : super(e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2; // 1から2に更新
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onUpgrade: (migrator, from, to) async {
+          if (from == 1) {
+            // バージョン1から2へのマイグレーション
+            await migrator.addColumn(tasks, tasks.isCompleted);
+            await migrator.addColumn(tasks, tasks.isDeleted);
+            await migrator.addColumn(tasks, tasks.shouldNotify);
+          }
+        },
+      );
 
   Future<List<Task>> getAllTasks() => select(tasks).get();
 

@@ -19,6 +19,9 @@ mixin _$Task {
   int? get id => throw _privateConstructorUsedError;
   String get title => throw _privateConstructorUsedError;
   DateTime get dueDate => throw _privateConstructorUsedError;
+  bool get isCompleted => throw _privateConstructorUsedError;
+  bool get isDeleted => throw _privateConstructorUsedError;
+  bool get shouldNotify => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
   $TaskCopyWith<Task> get copyWith => throw _privateConstructorUsedError;
@@ -29,7 +32,13 @@ abstract class $TaskCopyWith<$Res> {
   factory $TaskCopyWith(Task value, $Res Function(Task) then) =
       _$TaskCopyWithImpl<$Res, Task>;
   @useResult
-  $Res call({int? id, String title, DateTime dueDate});
+  $Res call(
+      {int? id,
+      String title,
+      DateTime dueDate,
+      bool isCompleted,
+      bool isDeleted,
+      bool shouldNotify});
 }
 
 /// @nodoc
@@ -48,6 +57,9 @@ class _$TaskCopyWithImpl<$Res, $Val extends Task>
     Object? id = freezed,
     Object? title = null,
     Object? dueDate = null,
+    Object? isCompleted = null,
+    Object? isDeleted = null,
+    Object? shouldNotify = null,
   }) {
     return _then(_value.copyWith(
       id: freezed == id
@@ -62,6 +74,18 @@ class _$TaskCopyWithImpl<$Res, $Val extends Task>
           ? _value.dueDate
           : dueDate // ignore: cast_nullable_to_non_nullable
               as DateTime,
+      isCompleted: null == isCompleted
+          ? _value.isCompleted
+          : isCompleted // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isDeleted: null == isDeleted
+          ? _value.isDeleted
+          : isDeleted // ignore: cast_nullable_to_non_nullable
+              as bool,
+      shouldNotify: null == shouldNotify
+          ? _value.shouldNotify
+          : shouldNotify // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -72,7 +96,13 @@ abstract class _$$_TaskCopyWith<$Res> implements $TaskCopyWith<$Res> {
       __$$_TaskCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({int? id, String title, DateTime dueDate});
+  $Res call(
+      {int? id,
+      String title,
+      DateTime dueDate,
+      bool isCompleted,
+      bool isDeleted,
+      bool shouldNotify});
 }
 
 /// @nodoc
@@ -87,6 +117,9 @@ class __$$_TaskCopyWithImpl<$Res> extends _$TaskCopyWithImpl<$Res, _$_Task>
     Object? id = freezed,
     Object? title = null,
     Object? dueDate = null,
+    Object? isCompleted = null,
+    Object? isDeleted = null,
+    Object? shouldNotify = null,
   }) {
     return _then(_$_Task(
       id: freezed == id
@@ -101,6 +134,18 @@ class __$$_TaskCopyWithImpl<$Res> extends _$TaskCopyWithImpl<$Res, _$_Task>
           ? _value.dueDate
           : dueDate // ignore: cast_nullable_to_non_nullable
               as DateTime,
+      isCompleted: null == isCompleted
+          ? _value.isCompleted
+          : isCompleted // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isDeleted: null == isDeleted
+          ? _value.isDeleted
+          : isDeleted // ignore: cast_nullable_to_non_nullable
+              as bool,
+      shouldNotify: null == shouldNotify
+          ? _value.shouldNotify
+          : shouldNotify // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -108,7 +153,13 @@ class __$$_TaskCopyWithImpl<$Res> extends _$TaskCopyWithImpl<$Res, _$_Task>
 /// @nodoc
 
 class _$_Task implements _Task {
-  const _$_Task({required this.id, required this.title, required this.dueDate});
+  const _$_Task(
+      {required this.id,
+      required this.title,
+      required this.dueDate,
+      required this.isCompleted,
+      required this.isDeleted,
+      required this.shouldNotify});
 
   @override
   final int? id;
@@ -116,10 +167,16 @@ class _$_Task implements _Task {
   final String title;
   @override
   final DateTime dueDate;
+  @override
+  final bool isCompleted;
+  @override
+  final bool isDeleted;
+  @override
+  final bool shouldNotify;
 
   @override
   String toString() {
-    return 'Task(id: $id, title: $title, dueDate: $dueDate)';
+    return 'Task(id: $id, title: $title, dueDate: $dueDate, isCompleted: $isCompleted, isDeleted: $isDeleted, shouldNotify: $shouldNotify)';
   }
 
   @override
@@ -129,11 +186,18 @@ class _$_Task implements _Task {
             other is _$_Task &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.title, title) || other.title == title) &&
-            (identical(other.dueDate, dueDate) || other.dueDate == dueDate));
+            (identical(other.dueDate, dueDate) || other.dueDate == dueDate) &&
+            (identical(other.isCompleted, isCompleted) ||
+                other.isCompleted == isCompleted) &&
+            (identical(other.isDeleted, isDeleted) ||
+                other.isDeleted == isDeleted) &&
+            (identical(other.shouldNotify, shouldNotify) ||
+                other.shouldNotify == shouldNotify));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, id, title, dueDate);
+  int get hashCode => Object.hash(
+      runtimeType, id, title, dueDate, isCompleted, isDeleted, shouldNotify);
 
   @JsonKey(ignore: true)
   @override
@@ -146,7 +210,10 @@ abstract class _Task implements Task {
   const factory _Task(
       {required final int? id,
       required final String title,
-      required final DateTime dueDate}) = _$_Task;
+      required final DateTime dueDate,
+      required final bool isCompleted,
+      required final bool isDeleted,
+      required final bool shouldNotify}) = _$_Task;
 
   @override
   int? get id;
@@ -154,6 +221,12 @@ abstract class _Task implements Task {
   String get title;
   @override
   DateTime get dueDate;
+  @override
+  bool get isCompleted;
+  @override
+  bool get isDeleted;
+  @override
+  bool get shouldNotify;
   @override
   @JsonKey(ignore: true)
   _$$_TaskCopyWith<_$_Task> get copyWith => throw _privateConstructorUsedError;

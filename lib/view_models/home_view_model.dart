@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:deadline_manager/database.dart';
 import 'package:timezone/timezone.dart';
+import 'package:intl/intl.dart';
 
 final taskListProvider =
     StateNotifierProvider<TaskListNotifier, List<Task>>((ref) {
@@ -51,13 +52,11 @@ class TaskListNotifier extends StateNotifier<List<Task>> {
     var iOSPlatformChannelSpecifics = DarwinNotificationDetails();
     var platformChannelSpecifics =
         NotificationDetails(iOS: iOSPlatformChannelSpecifics);
-
-    // Convert DateTime to TZDateTime
     final tzDueDate = TZDateTime.from(dueDate, local);
 
     await flutterLocalNotificationsPlugin.zonedSchedule(
       id!,
-      'Task Due!',
+      DateFormat.yMMMEd('ja').add_jm().format(tzDueDate),
       title,
       tzDueDate,
       platformChannelSpecifics,
@@ -69,5 +68,12 @@ class TaskListNotifier extends StateNotifier<List<Task>> {
 
   Future<void> cancelNotification(int? id) async {
     await flutterLocalNotificationsPlugin.cancel(id!);
+  }
+
+  Future<void> toggleTaskCompletion(Task task) async {
+    final db = await _ref.read(provideDatabase.future);
+    final updatedTask = task.copyWith(isCompleted: !task.isCompleted);
+    await db.updateTask(updatedTask);
+    _loadTasks();
   }
 }

@@ -21,7 +21,7 @@ class _TaskFormViewState extends ConsumerState<TaskFormView> {
   final _focusNode = FocusNode();
   DateTime? _selectedDateTime;
   String? _errorMessage;
-  // bool _isNotificationEnabled = false;
+  bool _isNotificationEnabled = false;
 
   @override
   void initState() {
@@ -83,10 +83,10 @@ class _TaskFormViewState extends ConsumerState<TaskFormView> {
                       ListTile(
                         title: Text(
                           _selectedDateTime == null
-                              ? '通知する日時を選択してください'
-                              : "${DateFormat.yMMMEd('ja').format(_selectedDateTime!)
-                              // _selectedDateTime!.toIso8601String().split('T')[0]} ${TimeOfDay.fromDateTime(_selectedDateTime!).format(context)
-                              }",
+                              ? _isNotificationEnabled == false
+                                  ? "日時を選択してください"
+                                  : "通知する日時を選択してください"
+                              : "${DateFormat.yMMMEd('ja').add_jm().format(_selectedDateTime!)}",
                           style: TextStyle(fontSize: 16),
                         ),
                         trailing: Icon(Icons.calendar_today,
@@ -103,19 +103,19 @@ class _TaskFormViewState extends ConsumerState<TaskFormView> {
                               locale: LocaleType.jp);
                         },
                       ),
-                      // SwitchListTile(
-                      //   title: Text(
-                      //     "通知をする",
-                      //     style: TextStyle(fontSize: 16),
-                      //   ),
-                      //   value: _isNotificationEnabled,
-                      //   onChanged: (bool value) {
-                      //     setState(() {
-                      //       _isNotificationEnabled = value;
-                      //     });
-                      //   },
-                      //   secondary: const Icon(Icons.notifications),
-                      // ),
+                      SwitchListTile(
+                        title: Text(
+                          _isNotificationEnabled == false ? "通知しない" : "通知する",
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        value: _isNotificationEnabled,
+                        onChanged: (bool value) {
+                          setState(() {
+                            _isNotificationEnabled = value;
+                          });
+                        },
+                        secondary: const Icon(Icons.notifications),
+                      ),
                     ],
                   ),
                   SizedBox(height: 16), // スペースを追加
@@ -139,7 +139,8 @@ class _TaskFormViewState extends ConsumerState<TaskFormView> {
                         });
                         return;
                       }
-                      if (!_selectedDateTime!.isAfter(DateTime.now())) {
+                      if (_isNotificationEnabled &&
+                          !_selectedDateTime!.isAfter(DateTime.now())) {
                         setState(() {
                           _errorMessage = '未来の日時を選択してください。';
                         });
@@ -154,7 +155,7 @@ class _TaskFormViewState extends ConsumerState<TaskFormView> {
                         dueDate: _selectedDateTime!,
                         isCompleted: false,
                         isDeleted: false,
-                        shouldNotify: true,
+                        shouldNotify: _isNotificationEnabled,
                       );
                       ref
                           .read(taskListProvider.notifier)

@@ -30,12 +30,16 @@ class TaskListNotifier extends StateNotifier<List<Task>> {
     if (task.id == null) {
       // 新しいタスクを追加
       final insertId = await db.insertTask(task);
-      scheduleNotification(insertId, task.title, task.dueDate);
+      if (task.shouldNotify) {
+        scheduleNotification(insertId, task.title, task.dueDate);
+      }
     } else {
       // 既存のタスクを更新
       await db.updateTask(task);
       cancelNotification(task.id);
-      scheduleNotification(task.id, task.title, task.dueDate);
+      if (task.shouldNotify) {
+        scheduleNotification(task.id, task.title, task.dueDate);
+      }
     }
     _loadTasks();
   }

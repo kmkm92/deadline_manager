@@ -103,7 +103,7 @@ class HomeView extends ConsumerWidget {
                   Text(
                     DateFormat.yMMMEd('ja').add_jm().format(task.dueDate),
                   ),
-                  if (task.shouldNotify)
+                  if (task.shouldNotify && !task.isCompleted)
                     Icon(
                       Icons.notifications,
                       size: 17,

@@ -26,13 +26,13 @@ Future<void> main() async {
   runApp(ProviderScope(child: DeadlineManagerApp()));
 }
 
-class DeadlineManagerApp extends StatelessWidget {
+class DeadlineManagerApp extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp(
       title: 'Deadline Manager',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.indigo,
       ),
       home: HomeView(),
     );

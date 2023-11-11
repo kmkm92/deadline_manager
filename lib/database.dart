@@ -26,8 +26,35 @@ class AppDatabase extends _$AppDatabase {
           }
         },
       );
+  // 全件取得（作成順）
+  Future<List<Task>> getAllTasks() =>
+      (select(tasks)..where((table) => table.isDeleted.equals(false))).get();
 
-  Future<List<Task>> getAllTasks() => select(tasks).get();
+  // 全件取得（削除されたタスク）
+  Future<List<Task>> getAllDeleteTasks() =>
+      (select(tasks)..where((table) => table.isDeleted.equals(true))).get();
+
+  // 期限遅い順
+  Future<List<Task>> getAllTasksSortedDesc() => (select(tasks)
+        ..where((table) => table.isDeleted.equals(false))
+        ..orderBy([
+          (table) =>
+              OrderingTerm(expression: table.dueDate, mode: OrderingMode.desc)
+        ]))
+      .get();
+  // 期限早い順
+  Future<List<Task>> getAllTasksSortedAsc() => (select(tasks)
+        ..where((table) => table.isDeleted.equals(false))
+        ..orderBy([
+          (table) =>
+              OrderingTerm(expression: table.dueDate, mode: OrderingMode.asc)
+        ]))
+      .get();
+  // チェックなし
+  Future<List<Task>> getAllTasksNotCompleted() => (select(tasks)
+        ..where((table) =>
+            table.isCompleted.equals(false) & table.isDeleted.equals(false)))
+      .get();
 
   Future<int> insertTask(Task task) => into(tasks).insert(task);
 

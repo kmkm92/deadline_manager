@@ -1,13 +1,7 @@
-import 'package:deadline_manager/database.dart';
-import 'package:deadline_manager/views/task_from_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:deadline_manager/view_models/home_view_model.dart';
 import 'package:intl/intl.dart';
-import 'package:settings_ui/settings_ui.dart';
 import 'package:deadline_manager/view_models/delete_task_view_model.dart';
-
-import 'home_view.dart'; // 日付のフォーマットに使用
 
 class DeleteTaskView extends ConsumerWidget {
   @override

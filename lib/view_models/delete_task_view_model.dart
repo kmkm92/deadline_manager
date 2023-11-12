@@ -1,9 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:deadline_manager/database.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:timezone/timezone.dart';
-import 'package:intl/intl.dart';
 
 final deleteTaskListProvider =
     StateNotifierProvider<DeleteTaskListNotifier, List<Task>>((ref) {

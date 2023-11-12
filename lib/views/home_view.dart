@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:deadline_manager/view_models/home_view_model.dart';
 import 'package:intl/intl.dart';
-import 'package:settings_ui/settings_ui.dart'; // 日付のフォーマットに使用
+import 'package:settings_ui/settings_ui.dart';
+import 'package:deadline_manager/views/license_view.dart';
 
 class HomeView extends ConsumerWidget {
   @override
@@ -155,7 +156,10 @@ class AppSettingsList extends StatelessWidget {
                 title: Text('ライセンス'),
                 leading: Icon(Icons.policy),
                 onPressed: (BuildContext context) {
-                  // 通知設定画面への遷移などの処理をここに書く
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => LicenseView()),
+                  );
                 },
               ),
               // 他の設定項目を追加
@@ -167,9 +171,10 @@ class AppSettingsList extends StatelessWidget {
               SettingsTile(
                 title: Text('バージョン'),
                 leading: Icon(Icons.info),
-                onPressed: (BuildContext context) {
-                  // アプリの情報画面への遷移などの処理をここに書く
-                },
+                trailing: Text('1.0.0'),
+                // onPressed: (BuildContext context) {
+                //   // アプリの情報画面への遷移などの処理をここに書く
+                // },
               ),
             ],
           ),

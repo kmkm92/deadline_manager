@@ -5,11 +5,8 @@ class LicenseView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LicensePage(
-      applicationName: '', // アプリの名前
-      // applicationVersion: '1.0.0', // バージョン
-      // applicationIcon: Icon(Icons.car_repair), // アプリのアイコン
-      // applicationLegalese: 'All rights reserved', // 著作権表示
+    return const LicensePage(
+      applicationName: '',
     );
   }
 }

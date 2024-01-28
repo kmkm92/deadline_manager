@@ -6,6 +6,7 @@ import 'package:flutter_datetime_picker_plus/flutter_datetime_picker_plus.dart'
 import 'package:deadline_manager/view_models/home_view_model.dart';
 import 'package:deadline_manager/database.dart';
 import 'package:intl/intl.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class TaskFormView extends ConsumerStatefulWidget {
   final Task? task;
@@ -85,6 +86,9 @@ class _TaskFormViewState extends ConsumerState<TaskFormView> {
                       controller: _titleController,
                       // focusNode: _focusNode,
                       decoration: InputDecoration(
+                        floatingLabelStyle: TextStyle(
+                          color: Colors.black,
+                        ),
                         labelText: 'タスク',
                         border: OutlineInputBorder(), // 入力フィールドのスタイル変更
                         focusedBorder: OutlineInputBorder(
@@ -121,6 +125,7 @@ class _TaskFormViewState extends ConsumerState<TaskFormView> {
                           },
                         ),
                         SwitchListTile(
+                          activeColor: Color.fromARGB(255, 248, 236, 196),
                           title: Text(
                             _isNotificationEnabled == false ? "通知しない" : "通知する",
                             style: TextStyle(fontSize: 16),
@@ -155,7 +160,7 @@ class _TaskFormViewState extends ConsumerState<TaskFormView> {
     );
   }
 
-  void _addOrUpdateTask() {
+  Future<void> _addOrUpdateTask() async {
     if (_titleController.text.isEmpty) {
       setState(() {
         _errorMessage = 'タスクを入力してください。';
@@ -177,6 +182,13 @@ class _TaskFormViewState extends ConsumerState<TaskFormView> {
     if (_isNotificationEnabled && !_selectedDateTime!.isAfter(DateTime.now())) {
       setState(() {
         _errorMessage = '未来の日時を選択してください。';
+      });
+      return;
+    }
+    if (await Permission.notification.isPermanentlyDenied &&
+        _isNotificationEnabled) {
+      setState(() {
+        _errorMessage = '通知が許可されていません。本体設定から通知を許可してください。';
       });
       return;
     }

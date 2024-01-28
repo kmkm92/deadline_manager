@@ -39,12 +39,6 @@ class TaskListNotifier extends StateNotifier<List<Task>> {
     state = tasks;
   }
 
-  // Future<void> _loadDeleteTasks() async {
-  //   final db = await _ref.read(provideDatabase.future);
-  //   final tasks = await db.getAllDeleteTasks();
-  //   state = tasks;
-  // }
-
   Future<void> addOrUpdateTask(Task task) async {
     final db = await _ref.read(provideDatabase.future);
     if (task.id == null) {
@@ -73,15 +67,6 @@ class TaskListNotifier extends StateNotifier<List<Task>> {
     cancelNotification(task.id);
     await sortTask();
   }
-
-// 物理削除
-  // Future<void> deleteTask(Task task) async {
-  //   final db = await _ref.read(provideDatabase.future);
-  //   await db.deleteTask(task);
-  //   cancelNotification(task.id);
-  //   // loadTasks();
-  //   await sortTask();
-  // }
 
   Future<void> scheduleNotification(
       int? id, String title, DateTime dueDate) async {

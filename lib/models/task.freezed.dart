@@ -14,18 +14,15 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
 
-Task _$TaskFromJson(Map<String, dynamic> json) {
-  return _Task.fromJson(json);
-}
-
 /// @nodoc
 mixin _$Task {
   int? get id => throw _privateConstructorUsedError;
   String get title => throw _privateConstructorUsedError;
   DateTime get dueDate => throw _privateConstructorUsedError;
-  TaskStatus get status => throw _privateConstructorUsedError;
+  bool get isCompleted => throw _privateConstructorUsedError;
+  bool get isDeleted => throw _privateConstructorUsedError;
+  bool get shouldNotify => throw _privateConstructorUsedError;
 
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
   $TaskCopyWith<Task> get copyWith => throw _privateConstructorUsedError;
 }
@@ -35,7 +32,13 @@ abstract class $TaskCopyWith<$Res> {
   factory $TaskCopyWith(Task value, $Res Function(Task) then) =
       _$TaskCopyWithImpl<$Res, Task>;
   @useResult
-  $Res call({int? id, String title, DateTime dueDate, TaskStatus status});
+  $Res call(
+      {int? id,
+      String title,
+      DateTime dueDate,
+      bool isCompleted,
+      bool isDeleted,
+      bool shouldNotify});
 }
 
 /// @nodoc
@@ -54,7 +57,9 @@ class _$TaskCopyWithImpl<$Res, $Val extends Task>
     Object? id = freezed,
     Object? title = null,
     Object? dueDate = null,
-    Object? status = null,
+    Object? isCompleted = null,
+    Object? isDeleted = null,
+    Object? shouldNotify = null,
   }) {
     return _then(_value.copyWith(
       id: freezed == id
@@ -69,10 +74,18 @@ class _$TaskCopyWithImpl<$Res, $Val extends Task>
           ? _value.dueDate
           : dueDate // ignore: cast_nullable_to_non_nullable
               as DateTime,
-      status: null == status
-          ? _value.status
-          : status // ignore: cast_nullable_to_non_nullable
-              as TaskStatus,
+      isCompleted: null == isCompleted
+          ? _value.isCompleted
+          : isCompleted // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isDeleted: null == isDeleted
+          ? _value.isDeleted
+          : isDeleted // ignore: cast_nullable_to_non_nullable
+              as bool,
+      shouldNotify: null == shouldNotify
+          ? _value.shouldNotify
+          : shouldNotify // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -83,7 +96,13 @@ abstract class _$$_TaskCopyWith<$Res> implements $TaskCopyWith<$Res> {
       __$$_TaskCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({int? id, String title, DateTime dueDate, TaskStatus status});
+  $Res call(
+      {int? id,
+      String title,
+      DateTime dueDate,
+      bool isCompleted,
+      bool isDeleted,
+      bool shouldNotify});
 }
 
 /// @nodoc
@@ -98,7 +117,9 @@ class __$$_TaskCopyWithImpl<$Res> extends _$TaskCopyWithImpl<$Res, _$_Task>
     Object? id = freezed,
     Object? title = null,
     Object? dueDate = null,
-    Object? status = null,
+    Object? isCompleted = null,
+    Object? isDeleted = null,
+    Object? shouldNotify = null,
   }) {
     return _then(_$_Task(
       id: freezed == id
@@ -113,24 +134,32 @@ class __$$_TaskCopyWithImpl<$Res> extends _$TaskCopyWithImpl<$Res, _$_Task>
           ? _value.dueDate
           : dueDate // ignore: cast_nullable_to_non_nullable
               as DateTime,
-      status: null == status
-          ? _value.status
-          : status // ignore: cast_nullable_to_non_nullable
-              as TaskStatus,
+      isCompleted: null == isCompleted
+          ? _value.isCompleted
+          : isCompleted // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isDeleted: null == isDeleted
+          ? _value.isDeleted
+          : isDeleted // ignore: cast_nullable_to_non_nullable
+              as bool,
+      shouldNotify: null == shouldNotify
+          ? _value.shouldNotify
+          : shouldNotify // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$_Task implements _Task {
-  _$_Task(
-      {this.id,
+  const _$_Task(
+      {required this.id,
       required this.title,
       required this.dueDate,
-      required this.status});
-
-  factory _$_Task.fromJson(Map<String, dynamic> json) => _$$_TaskFromJson(json);
+      required this.isCompleted,
+      required this.isDeleted,
+      required this.shouldNotify});
 
   @override
   final int? id;
@@ -139,11 +168,15 @@ class _$_Task implements _Task {
   @override
   final DateTime dueDate;
   @override
-  final TaskStatus status;
+  final bool isCompleted;
+  @override
+  final bool isDeleted;
+  @override
+  final bool shouldNotify;
 
   @override
   String toString() {
-    return 'Task(id: $id, title: $title, dueDate: $dueDate, status: $status)';
+    return 'Task(id: $id, title: $title, dueDate: $dueDate, isCompleted: $isCompleted, isDeleted: $isDeleted, shouldNotify: $shouldNotify)';
   }
 
   @override
@@ -154,35 +187,33 @@ class _$_Task implements _Task {
             (identical(other.id, id) || other.id == id) &&
             (identical(other.title, title) || other.title == title) &&
             (identical(other.dueDate, dueDate) || other.dueDate == dueDate) &&
-            (identical(other.status, status) || other.status == status));
+            (identical(other.isCompleted, isCompleted) ||
+                other.isCompleted == isCompleted) &&
+            (identical(other.isDeleted, isDeleted) ||
+                other.isDeleted == isDeleted) &&
+            (identical(other.shouldNotify, shouldNotify) ||
+                other.shouldNotify == shouldNotify));
   }
 
-  @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(runtimeType, id, title, dueDate, status);
+  int get hashCode => Object.hash(
+      runtimeType, id, title, dueDate, isCompleted, isDeleted, shouldNotify);
 
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$_TaskCopyWith<_$_Task> get copyWith =>
       __$$_TaskCopyWithImpl<_$_Task>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$_TaskToJson(
-      this,
-    );
-  }
 }
 
 abstract class _Task implements Task {
-  factory _Task(
-      {final int? id,
+  const factory _Task(
+      {required final int? id,
       required final String title,
       required final DateTime dueDate,
-      required final TaskStatus status}) = _$_Task;
-
-  factory _Task.fromJson(Map<String, dynamic> json) = _$_Task.fromJson;
+      required final bool isCompleted,
+      required final bool isDeleted,
+      required final bool shouldNotify}) = _$_Task;
 
   @override
   int? get id;
@@ -191,7 +222,11 @@ abstract class _Task implements Task {
   @override
   DateTime get dueDate;
   @override
-  TaskStatus get status;
+  bool get isCompleted;
+  @override
+  bool get isDeleted;
+  @override
+  bool get shouldNotify;
   @override
   @JsonKey(ignore: true)
   _$$_TaskCopyWith<_$_Task> get copyWith => throw _privateConstructorUsedError;

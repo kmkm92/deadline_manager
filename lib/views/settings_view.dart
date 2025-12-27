@@ -4,6 +4,7 @@ import 'package:deadline_manager/views/license_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:deadline_manager/view_models/theme_view_model.dart';
+import 'package:app_settings/app_settings.dart';
 
 class SettingsView extends ConsumerStatefulWidget {
   const SettingsView({Key? key}) : super(key: key);
@@ -113,16 +114,24 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               SwitchListTile(
                 secondary: Icon(Icons.warning_amber_rounded,
                     color: Theme.of(context).colorScheme.onSurfaceVariant),
-                title: const Text('タスク削除時の確認'),
+                title: const Text('リマインダー削除時の確認'),
                 subtitle: const Text('削除前に確認ダイアログを表示します'),
                 value: _showDeleteConfirmation,
                 onChanged: _updateDeleteConfirmation,
               ),
               _buildSettingsTile(
                 context,
+                icon: Icons.notifications_outlined,
+                title: '端末の通知設定',
+                subtitle: '端末の設定アプリを開きます',
+                onTap: () => AppSettings.openAppSettings(
+                    type: AppSettingsType.notification),
+              ),
+              _buildSettingsTile(
+                context,
                 icon: Icons.delete_outline,
                 title: 'ゴミ箱',
-                subtitle: '削除したタスクを確認・復元します\n※30日経過すると自動削除されます',
+                subtitle: '削除したリマインダーを確認・復元します\n※30日経過すると自動削除されます',
                 isThreeLine: true,
                 onTap: () {
                   Navigator.push(

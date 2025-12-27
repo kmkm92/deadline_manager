@@ -21,7 +21,7 @@ class DeleteTaskView extends ConsumerWidget {
               padding: EdgeInsets.symmetric(vertical: 20.h),
               child: Center(
                 child: Text(
-                  "ゴミ箱のタスクは30日経過後に自動的に削除されます",
+                  "ゴミ箱のリマインダーは30日経過後に自動的に削除されます",
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -47,7 +47,7 @@ class DeleteTaskView extends ConsumerWidget {
                   fontWeight: FontWeight.bold,
                   decoration: task.isCompleted
                       ? TextDecoration.lineThrough
-                      : null, // タスクが完了している場合、打ち消し線を追加
+                      : null, // リマインダーが完了している場合、打ち消し線を追加
                   decorationThickness: task.isCompleted ? 2.5 : null,
                 ),
               ),

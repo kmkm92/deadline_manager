@@ -11,9 +11,14 @@ import 'package:permission_handler/permission_handler.dart';
 class TaskFormView extends ConsumerStatefulWidget {
   final Task? task;
   final String? initialTitle;
+  final bool isRecurringMode;
 
-  const TaskFormView({Key? key, this.task, this.initialTitle})
-      : super(key: key);
+  const TaskFormView({
+    Key? key,
+    this.task,
+    this.initialTitle,
+    this.isRecurringMode = false,
+  }) : super(key: key);
 
   @override
   _TaskFormViewState createState() => _TaskFormViewState();
@@ -26,6 +31,14 @@ class _TaskFormViewState extends ConsumerState<TaskFormView>
   String? _errorMessage;
   bool _isNotificationEnabled = true;
   String? _recurrenceInterval; // 'daily', 'weekly', 'monthly', 'yearly'
+
+  // Recurring specific
+  TimeOfDay _selectedTime = const TimeOfDay(hour: 9, minute: 0);
+
+  // Monday = 1, Sunday = 7
+  int _selectedWeekday = DateTime.now().weekday;
+  // 1-31
+  int _selectedDayOfMonth = DateTime.now().day;
 
   // Relative Time
   late TabController _tabController;
@@ -47,9 +60,17 @@ class _TaskFormViewState extends ConsumerState<TaskFormView>
       _selectedDateTime = widget.task!.dueDate;
       _isNotificationEnabled = widget.task!.shouldNotify;
       _recurrenceInterval = widget.task!.recurrenceInterval;
+
+      // Initialize time from task due date
+      _selectedTime = TimeOfDay.fromDateTime(widget.task!.dueDate);
     } else if (widget.initialTitle != null) {
       _titleController.text = widget.initialTitle!;
-      // Default to slightly in future or allow user to pick
+      _isNotificationEnabled = true;
+    }
+
+    // Default recurrence if in recurring mode and new task
+    if (widget.task == null && widget.isRecurringMode) {
+      _recurrenceInterval = 'daily';
       _isNotificationEnabled = true;
     }
   }
@@ -79,7 +100,7 @@ class _TaskFormViewState extends ConsumerState<TaskFormView>
             child: Scaffold(
               backgroundColor: Colors.transparent,
               appBar: AppBar(
-                title: Text(widget.task == null ? 'タスク追加' : 'タスク編集'),
+                title: Text(widget.task == null ? 'リマインダー追加' : 'リマインダー編集'),
                 automaticallyImplyLeading: false,
                 actions: [
                   TextButton(
@@ -111,87 +132,24 @@ class _TaskFormViewState extends ConsumerState<TaskFormView>
                           textAlign: TextAlign.center,
                         ),
                       ),
-
                     TextField(
                       controller: _titleController,
                       autofocus:
                           widget.task == null && widget.initialTitle == null,
                       decoration: const InputDecoration(
-                        labelText: 'タスク名',
+                        labelText: 'リマインダー名',
                         hintText: '例: 燃えるゴミを出す',
                         prefixIcon: Icon(Icons.task_alt),
                       ),
                     ),
                     const SizedBox(height: 24),
-
-                    // Notification Toggle
-                    SwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: const Text("通知設定"),
-                      subtitle: Text(
-                          _isNotificationEnabled ? "指定日時に通知します" : "通知しません"),
-                      value: _isNotificationEnabled,
-                      onChanged: (val) {
-                        setState(() => _isNotificationEnabled = val);
-                      },
-                    ),
-                    const Divider(),
-
-                    // TabBar for Time Selection
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      margin: const EdgeInsets.symmetric(vertical: 16),
-                      child: TabBar(
-                        controller: _tabController,
-                        indicatorSize: TabBarIndicatorSize.tab,
-                        indicator: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        labelColor: Theme.of(context).colorScheme.onPrimary,
-                        unselectedLabelColor:
-                            Theme.of(context).colorScheme.onSurfaceVariant,
-                        dividerColor: Colors.transparent,
-                        tabs: const [
-                          Tab(text: '日時指定'),
-                          Tab(text: '相対時間'),
-                        ],
-                      ),
-                    ),
-
-                    SizedBox(
-                      height: 250,
-                      child: TabBarView(
-                        controller: _tabController,
-                        children: [
-                          _buildAbsoluteDateTimePicker(),
-                          _buildRelativeTimePicker(),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-                    const Text("繰り返し設定",
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          _buildRecurrenceChip(null, 'なし'),
-                          _buildRecurrenceChip('daily', '毎日'),
-                          _buildRecurrenceChip('weekly', '毎週'),
-                          _buildRecurrenceChip('monthly', '毎月'),
-                          _buildRecurrenceChip('yearly', '毎年'),
-                        ],
-                      ),
-                    ),
-
+                    if (widget.isRecurringMode) ...[
+                      // RECURRING TASK UI
+                      _buildRecurringTaskUI(),
+                    ] else ...[
+                      // NORMAL TASK UI
+                      _buildNormalTaskUI(),
+                    ],
                     SizedBox(
                         height: MediaQuery.of(context).viewInsets.bottom + 20),
                   ],
@@ -201,6 +159,112 @@ class _TaskFormViewState extends ConsumerState<TaskFormView>
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildNormalTaskUI() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text("通知設定"),
+          subtitle: Text(_isNotificationEnabled ? "指定日時に通知します" : "通知しません"),
+          value: _isNotificationEnabled,
+          onChanged: (val) {
+            setState(() => _isNotificationEnabled = val);
+          },
+        ),
+        const Divider(),
+
+        // TabBar for Time Selection
+        Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          margin: const EdgeInsets.symmetric(vertical: 16),
+          child: TabBar(
+            controller: _tabController,
+            indicatorSize: TabBarIndicatorSize.tab,
+            indicator: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            labelColor: Theme.of(context).colorScheme.onPrimary,
+            unselectedLabelColor:
+                Theme.of(context).colorScheme.onSurfaceVariant,
+            dividerColor: Colors.transparent,
+            tabs: const [
+              Tab(text: '日時指定'),
+              Tab(text: '相対時間'),
+            ],
+          ),
+        ),
+
+        SizedBox(
+          height: 250,
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildAbsoluteDateTimePicker(),
+              _buildRelativeTimePicker(),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRecurringTaskUI() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text("繰り返しパターン", style: Theme.of(context).textTheme.titleSmall),
+        const SizedBox(height: 8),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              _buildRecurrenceChip('daily', '毎日'),
+              _buildRecurrenceChip('weekly', '毎週'),
+              _buildRecurrenceChip('monthly', '毎月'),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+
+        // 1. Time Selection (Drum Roll) - Always visible for repeating tasks
+        Text("時間設定", style: Theme.of(context).textTheme.titleSmall),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 120,
+          child: CupertinoDatePicker(
+            mode: CupertinoDatePickerMode.time,
+            use24hFormat: true,
+            // Create a DateTime with the selected time (Date part doesn't matter for display in time mode usually, but better be safe)
+            initialDateTime:
+                DateTime(2020, 1, 1, _selectedTime.hour, _selectedTime.minute),
+            onDateTimeChanged: (DateTime newDateTime) {
+              setState(() {
+                _selectedTime = TimeOfDay.fromDateTime(newDateTime);
+              });
+            },
+          ),
+        ),
+        const SizedBox(height: 24),
+
+        // 2. Interval Specific Settings
+        if (_recurrenceInterval == 'weekly') ...[
+          Text("曜日設定", style: Theme.of(context).textTheme.titleSmall),
+          const SizedBox(height: 8),
+          _buildDayOfWeekSelector(),
+        ] else if (_recurrenceInterval == 'monthly') ...[
+          Text("日付設定", style: Theme.of(context).textTheme.titleSmall),
+          const SizedBox(height: 8),
+          _buildDayOfMonthSelector(),
+        ],
+      ],
     );
   }
 
@@ -224,23 +288,97 @@ class _TaskFormViewState extends ConsumerState<TaskFormView>
         label: Text(label),
         selected: isSelected,
         onSelected: (bool selected) {
-          setState(() {
-            _recurrenceInterval = selected ? value : null;
-          });
+          if (selected) {
+            setState(() {
+              _recurrenceInterval = value;
+            });
+          }
         },
       ),
     );
   }
 
-  Widget _buildAbsoluteDateTimePicker() {
+  Widget _buildDayOfWeekSelector() {
+    // Determine initially selected weekday based on existing logic or default
+    // Using a simple Row of chips for Mon-Sun
+    final weekDays = ['月', '火', '水', '木', '金', '土', '日'];
+    return Wrap(
+      spacing: 8.0,
+      children: List.generate(7, (index) {
+        final dayIndex = index + 1; // 1-based
+        final isSelected = _selectedWeekday == dayIndex;
+        return FilterChip(
+          label: Text(weekDays[index]),
+          selected: isSelected,
+          onSelected: (selected) {
+            if (selected) {
+              setState(() => _selectedWeekday = dayIndex);
+            }
+          },
+          showCheckmark: false,
+          selectedColor: Theme.of(context).colorScheme.primaryContainer,
+          labelStyle: TextStyle(
+            color: isSelected
+                ? Theme.of(context).colorScheme.onPrimaryContainer
+                : null,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
+        );
+      }),
+    );
+  }
+
+  FixedExtentScrollController? _dayOfMonthScrollController;
+
+  Widget _buildDayOfMonthSelector() {
+    // Drum roll for 1-31
+    // Initialize controller only once or when needed
+    // Note: If reusing view, be careful.
+    _dayOfMonthScrollController ??=
+        FixedExtentScrollController(initialItem: _selectedDayOfMonth - 1);
+
+    return SizedBox(
+      height: 120,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 80,
+            child: CupertinoPicker(
+              scrollController: _dayOfMonthScrollController,
+              itemExtent: 32,
+              onSelectedItemChanged: (index) {
+                setState(() {
+                  _selectedDayOfMonth = index + 1;
+                });
+              },
+              children: List.generate(
+                  31, (index) => Center(child: Text('${index + 1}'))),
+            ),
+          ),
+          const Text("日"),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAbsoluteDateTimePicker({String label = "日時を選択"}) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         InkWell(
           onTap: () {
+            // For recurring, we might only want Date picker if Time is separate?
+            // But let's use the full picker for simplicity or restrict it.
+            // If Recurring, we override the TIME part with _selectedTime usually?
+            // Or we just use this to pick the FULL start date/time.
             picker.DatePicker.showDateTimePicker(context,
                 showTitleActions: true, onConfirm: (date) {
-              setState(() => _selectedDateTime = date);
+              setState(() {
+                _selectedDateTime = date;
+                // Sync time if using separate time picker
+                _selectedTime = TimeOfDay.fromDateTime(date);
+              });
             },
                 currentTime: _selectedDateTime ?? DateTime.now(),
                 locale: picker.LocaleType.jp);
@@ -259,7 +397,7 @@ class _TaskFormViewState extends ConsumerState<TaskFormView>
                 const SizedBox(width: 8),
                 Text(
                   _selectedDateTime == null
-                      ? "日時を選択"
+                      ? label
                       : DateLogic.formatToJapanese(_selectedDateTime!),
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
@@ -324,29 +462,55 @@ class _TaskFormViewState extends ConsumerState<TaskFormView>
   Future<void> _addOrUpdateTask() async {
     // Validation
     if (_titleController.text.isEmpty) {
-      setState(() => _errorMessage = 'タスク名を入力してください。');
+      setState(() => _errorMessage = 'リマインダー名を入力してください。');
       return;
     }
 
     DateTime? finalDateTime;
-    if (_tabController.index == 0) {
-      if (_selectedDateTime == null) {
-        setState(() => _errorMessage = '日時を選択してください。');
-        return;
-      }
-      finalDateTime = _selectedDateTime;
-    } else {
-      if (_selectedHours == 0 && _selectedMinutes == 0) {
-        setState(() => _errorMessage = '時間を設定してください。');
-        return;
-      }
-      finalDateTime = DateTime.now()
-          .add(Duration(hours: _selectedHours, minutes: _selectedMinutes));
-    }
 
-    if (_isNotificationEnabled && !finalDateTime!.isAfter(DateTime.now())) {
-      setState(() => _errorMessage = '未来の日時を指定してください。');
-      return;
+    if (widget.isRecurringMode) {
+      // RECURRING LOGIC
+      if (_recurrenceInterval == null) {
+        setState(() => _errorMessage = '繰り返しパターンを選択してください。');
+        return;
+      }
+
+      if (_recurrenceInterval == 'daily') {
+        finalDateTime = DateLogic.getNextDailyDate(_selectedTime);
+      } else if (_recurrenceInterval == 'weekly') {
+        finalDateTime =
+            DateLogic.getNextWeeklyDate(_selectedWeekday, _selectedTime);
+      } else {
+        // monthly
+        finalDateTime =
+            DateLogic.getNextMonthlyDate(_selectedDayOfMonth, _selectedTime);
+      }
+
+      // Ensure not null
+      if (finalDateTime == null) {
+        finalDateTime = DateTime.now();
+      }
+    } else {
+      // NORMAL LOGIC
+      if (_tabController.index == 0) {
+        if (_selectedDateTime == null) {
+          setState(() => _errorMessage = '日時を選択してください。');
+          return;
+        }
+        finalDateTime = _selectedDateTime;
+      } else {
+        if (_selectedHours == 0 && _selectedMinutes == 0) {
+          setState(() => _errorMessage = '時間を設定してください。');
+          return;
+        }
+        finalDateTime = DateTime.now()
+            .add(Duration(hours: _selectedHours, minutes: _selectedMinutes));
+      }
+
+      if (_isNotificationEnabled && !finalDateTime!.isAfter(DateTime.now())) {
+        setState(() => _errorMessage = '未来の日時を指定してください。');
+        return;
+      }
     }
 
     if (_isNotificationEnabled &&
@@ -364,7 +528,7 @@ class _TaskFormViewState extends ConsumerState<TaskFormView>
       shouldNotify: _isNotificationEnabled,
       sortOrder: widget.task?.sortOrder ?? 0,
       deletedAt: widget.task?.deletedAt,
-      recurrenceInterval: _recurrenceInterval,
+      recurrenceInterval: widget.isRecurringMode ? _recurrenceInterval : null,
     );
 
     await ref.read(taskListProvider.notifier).addOrUpdateTask(newTask);

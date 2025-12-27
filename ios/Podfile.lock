@@ -1,4 +1,6 @@
 PODS:
+  - app_settings (6.1.2):
+    - Flutter
   - Flutter (1.0.0)
   - flutter_local_notifications (0.0.1):
     - Flutter
@@ -37,6 +39,7 @@ PODS:
     - sqlite3/session
 
 DEPENDENCIES:
+  - app_settings (from `.symlinks/plugins/app_settings/ios`)
   - Flutter (from `Flutter`)
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
@@ -49,6 +52,8 @@ SPEC REPOS:
     - sqlite3
 
 EXTERNAL SOURCES:
+  app_settings:
+    :path: ".symlinks/plugins/app_settings/ios"
   Flutter:
     :path: Flutter
   flutter_local_notifications:
@@ -63,6 +68,7 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/sqlite3_flutter_libs/darwin"
 
 SPEC CHECKSUMS:
+  app_settings: 9217ccbe946aa9a3751b5459dcf50dabc87517b2
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_local_notifications: 0c0b1ae97e741e1521e4c1629a459d04b9aec743
   path_provider_foundation: 0b743cbb62d8e47eab856f09262bb8c1ddcfe6ba

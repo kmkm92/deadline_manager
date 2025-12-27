@@ -32,8 +32,42 @@ class TaskListNotifier extends StateNotifier<List<Task>> {
 
   Future<void> loadTasks() async {
     final db = await _ref.read(provideDatabase.future);
+
+    // Check for expired recurring tasks and update them
+    await _checkExpiredRecurringTasks(db);
+
     final tasks = await db.getAllTasks();
     state = tasks;
+  }
+
+  Future<void> _checkExpiredRecurringTasks(AppDatabase db) async {
+    final now = DateTime.now();
+    // Fetch all active recurring tasks
+    final tasks = await db.getAllTasks();
+    final recurringTasks = tasks.where((t) =>
+        t.recurrenceInterval != null &&
+        t.recurrenceInterval!.isNotEmpty &&
+        !t.isDeleted);
+
+    for (var task in recurringTasks) {
+      // If task is expired, calculate next occurrence(s) until it's in future
+      if (task.dueDate.isBefore(now)) {
+        final nextDate = DateLogic.getNextValidFutureDate(
+            task.dueDate, task.recurrenceInterval);
+
+        // Only update if it actually changed to future (safety check)
+        if (nextDate.isAfter(now)) {
+          final updatedTask = task.copyWith(dueDate: nextDate);
+          await db.updateTask(updatedTask);
+          // Re-schedule notification
+          if (updatedTask.shouldNotify) {
+            cancelNotification(updatedTask.id);
+            scheduleNotification(
+                updatedTask.id, updatedTask.title, updatedTask.dueDate);
+          }
+        }
+      }
+    }
   }
 
   Future<void> loadTasksSortAsc() async {

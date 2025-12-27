@@ -14,13 +14,21 @@ class DateLogic {
       case 'weekly':
         return current.add(const Duration(days: 7));
       case 'monthly':
-        // Simple monthly addition: 1 month later, same time
-        // Note: This logic can be improved for edge cases (e.g. Jan 31 -> Feb 28/29) using packages like Jiffy or handling explicitly.
-        // For now, using standard DateTime logic which might overflow (Jan 31 + 1 mo -> Feb 28 or Mar 3 depending on implementation? actually Dart DateTime(y, m+1, d) handles overflow by carrying over)
-        // DateTime(2023, 1, 31) -> DateTime(2023, 2, 31) -> March 3 (non-leap)
-        final nextMonth = DateTime(current.year, current.month + 1, current.day,
-            current.hour, current.minute);
-        return nextMonth;
+        // 月末オーバーフロー対策: 次の月の同じ日付を計算
+        // 31日 → 2月の場合は28日(または29日)になるよう調整
+        final targetDay = current.day;
+        final nextYear = current.month == 12 ? current.year + 1 : current.year;
+        final nextMonthNum = current.month == 12 ? 1 : current.month + 1;
+
+        // 次の月の最終日を取得 (翌月の0日 = 当月の最終日)
+        final lastDayOfNextMonth = DateTime(nextYear, nextMonthNum + 1, 0).day;
+
+        // 目標日と月の最終日の小さい方を使用
+        final safeDay =
+            targetDay > lastDayOfNextMonth ? lastDayOfNextMonth : targetDay;
+
+        return DateTime(
+            nextYear, nextMonthNum, safeDay, current.hour, current.minute);
       case 'yearly':
         return DateTime(current.year + 1, current.month, current.day,
             current.hour, current.minute);

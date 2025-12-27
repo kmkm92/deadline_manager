@@ -126,6 +126,12 @@ class TaskListNotifier extends StateNotifier<List<Task>> {
 
   Future<void> scheduleNotification(
       int? id, String title, DateTime dueDate) async {
+    // IDがnullの場合は通知をスケジュールしない
+    if (id == null) return;
+
+    // 過去の日時の場合は通知をスケジュールしない
+    if (!dueDate.isAfter(DateTime.now())) return;
+
     var iOSPlatformChannelSpecifics = DarwinNotificationDetails();
     var platformChannelSpecifics =
         NotificationDetails(iOS: iOSPlatformChannelSpecifics);
@@ -133,7 +139,7 @@ class TaskListNotifier extends StateNotifier<List<Task>> {
 
     try {
       await flutterLocalNotificationsPlugin.zonedSchedule(
-        id!,
+        id,
         DateFormat.yMMMEd('ja').add_jm().format(tzDueDate),
         title,
         tzDueDate,
@@ -148,7 +154,9 @@ class TaskListNotifier extends StateNotifier<List<Task>> {
   }
 
   Future<void> cancelNotification(int? id) async {
-    await flutterLocalNotificationsPlugin.cancel(id!);
+    // IDがnullの場合はキャンセル処理をスキップ
+    if (id == null) return;
+    await flutterLocalNotificationsPlugin.cancel(id);
   }
 
   Future<void> toggleTaskCompletion(Task task) async {

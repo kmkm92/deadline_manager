@@ -33,14 +33,11 @@ void main() {
     });
 
     test('Calculates next monthly date correctly (month overflow)', () {
-      // Jan 31 -> Feb 28 (or 29) -> March
-      // Dart DateTime handles overflow: Feb 31 -> March 3 (non-leap) or March 2 (leap)
-      // 2023 is non-leap year. Feb has 28 days.
-      // Jan 31 + 1 month = Feb 31.
-      // Feb 31 = Feb 28 + 3 days = March 3.
+      // 修正後: Jan 31 -> Feb 28 (オーバーフローせずに月末に調整)
+      // 2023年は閏年ではないので、2月は28日まで
       final current = DateTime(2023, 1, 31, 10, 0);
       final next = DateLogic.calculateNextDate(current, 'monthly');
-      expect(next, DateTime(2023, 3, 3, 10, 0));
+      expect(next, DateTime(2023, 2, 28, 10, 0));
     });
 
     test('Calculates next yearly date correctly', () {

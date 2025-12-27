@@ -12,7 +12,7 @@ part of 'task.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 /// @nodoc
 mixin _$Task {
@@ -22,8 +22,13 @@ mixin _$Task {
   bool get isCompleted => throw _privateConstructorUsedError;
   bool get isDeleted => throw _privateConstructorUsedError;
   bool get shouldNotify => throw _privateConstructorUsedError;
+  int get sortOrder => throw _privateConstructorUsedError;
+  DateTime? get deletedAt => throw _privateConstructorUsedError;
+  String? get recurrenceInterval => throw _privateConstructorUsedError;
 
-  @JsonKey(ignore: true)
+  /// Create a copy of Task
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $TaskCopyWith<Task> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -38,7 +43,10 @@ abstract class $TaskCopyWith<$Res> {
       DateTime dueDate,
       bool isCompleted,
       bool isDeleted,
-      bool shouldNotify});
+      bool shouldNotify,
+      int sortOrder,
+      DateTime? deletedAt,
+      String? recurrenceInterval});
 }
 
 /// @nodoc
@@ -51,6 +59,8 @@ class _$TaskCopyWithImpl<$Res, $Val extends Task>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of Task
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -60,6 +70,9 @@ class _$TaskCopyWithImpl<$Res, $Val extends Task>
     Object? isCompleted = null,
     Object? isDeleted = null,
     Object? shouldNotify = null,
+    Object? sortOrder = null,
+    Object? deletedAt = freezed,
+    Object? recurrenceInterval = freezed,
   }) {
     return _then(_value.copyWith(
       id: freezed == id
@@ -86,14 +99,27 @@ class _$TaskCopyWithImpl<$Res, $Val extends Task>
           ? _value.shouldNotify
           : shouldNotify // ignore: cast_nullable_to_non_nullable
               as bool,
+      sortOrder: null == sortOrder
+          ? _value.sortOrder
+          : sortOrder // ignore: cast_nullable_to_non_nullable
+              as int,
+      deletedAt: freezed == deletedAt
+          ? _value.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      recurrenceInterval: freezed == recurrenceInterval
+          ? _value.recurrenceInterval
+          : recurrenceInterval // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
 
 /// @nodoc
-abstract class _$$_TaskCopyWith<$Res> implements $TaskCopyWith<$Res> {
-  factory _$$_TaskCopyWith(_$_Task value, $Res Function(_$_Task) then) =
-      __$$_TaskCopyWithImpl<$Res>;
+abstract class _$$TaskImplCopyWith<$Res> implements $TaskCopyWith<$Res> {
+  factory _$$TaskImplCopyWith(
+          _$TaskImpl value, $Res Function(_$TaskImpl) then) =
+      __$$TaskImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -102,15 +128,21 @@ abstract class _$$_TaskCopyWith<$Res> implements $TaskCopyWith<$Res> {
       DateTime dueDate,
       bool isCompleted,
       bool isDeleted,
-      bool shouldNotify});
+      bool shouldNotify,
+      int sortOrder,
+      DateTime? deletedAt,
+      String? recurrenceInterval});
 }
 
 /// @nodoc
-class __$$_TaskCopyWithImpl<$Res> extends _$TaskCopyWithImpl<$Res, _$_Task>
-    implements _$$_TaskCopyWith<$Res> {
-  __$$_TaskCopyWithImpl(_$_Task _value, $Res Function(_$_Task) _then)
+class __$$TaskImplCopyWithImpl<$Res>
+    extends _$TaskCopyWithImpl<$Res, _$TaskImpl>
+    implements _$$TaskImplCopyWith<$Res> {
+  __$$TaskImplCopyWithImpl(_$TaskImpl _value, $Res Function(_$TaskImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of Task
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -120,8 +152,11 @@ class __$$_TaskCopyWithImpl<$Res> extends _$TaskCopyWithImpl<$Res, _$_Task>
     Object? isCompleted = null,
     Object? isDeleted = null,
     Object? shouldNotify = null,
+    Object? sortOrder = null,
+    Object? deletedAt = freezed,
+    Object? recurrenceInterval = freezed,
   }) {
-    return _then(_$_Task(
+    return _then(_$TaskImpl(
       id: freezed == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -146,20 +181,35 @@ class __$$_TaskCopyWithImpl<$Res> extends _$TaskCopyWithImpl<$Res, _$_Task>
           ? _value.shouldNotify
           : shouldNotify // ignore: cast_nullable_to_non_nullable
               as bool,
+      sortOrder: null == sortOrder
+          ? _value.sortOrder
+          : sortOrder // ignore: cast_nullable_to_non_nullable
+              as int,
+      deletedAt: freezed == deletedAt
+          ? _value.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      recurrenceInterval: freezed == recurrenceInterval
+          ? _value.recurrenceInterval
+          : recurrenceInterval // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
 
 /// @nodoc
 
-class _$_Task implements _Task {
-  const _$_Task(
+class _$TaskImpl implements _Task {
+  const _$TaskImpl(
       {required this.id,
       required this.title,
       required this.dueDate,
       required this.isCompleted,
       required this.isDeleted,
-      required this.shouldNotify});
+      required this.shouldNotify,
+      required this.sortOrder,
+      this.deletedAt,
+      this.recurrenceInterval});
 
   @override
   final int? id;
@@ -173,17 +223,23 @@ class _$_Task implements _Task {
   final bool isDeleted;
   @override
   final bool shouldNotify;
+  @override
+  final int sortOrder;
+  @override
+  final DateTime? deletedAt;
+  @override
+  final String? recurrenceInterval;
 
   @override
   String toString() {
-    return 'Task(id: $id, title: $title, dueDate: $dueDate, isCompleted: $isCompleted, isDeleted: $isDeleted, shouldNotify: $shouldNotify)';
+    return 'Task(id: $id, title: $title, dueDate: $dueDate, isCompleted: $isCompleted, isDeleted: $isDeleted, shouldNotify: $shouldNotify, sortOrder: $sortOrder, deletedAt: $deletedAt, recurrenceInterval: $recurrenceInterval)';
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_Task &&
+            other is _$TaskImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.title, title) || other.title == title) &&
             (identical(other.dueDate, dueDate) || other.dueDate == dueDate) &&
@@ -192,18 +248,26 @@ class _$_Task implements _Task {
             (identical(other.isDeleted, isDeleted) ||
                 other.isDeleted == isDeleted) &&
             (identical(other.shouldNotify, shouldNotify) ||
-                other.shouldNotify == shouldNotify));
+                other.shouldNotify == shouldNotify) &&
+            (identical(other.sortOrder, sortOrder) ||
+                other.sortOrder == sortOrder) &&
+            (identical(other.deletedAt, deletedAt) ||
+                other.deletedAt == deletedAt) &&
+            (identical(other.recurrenceInterval, recurrenceInterval) ||
+                other.recurrenceInterval == recurrenceInterval));
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType, id, title, dueDate, isCompleted, isDeleted, shouldNotify);
+  int get hashCode => Object.hash(runtimeType, id, title, dueDate, isCompleted,
+      isDeleted, shouldNotify, sortOrder, deletedAt, recurrenceInterval);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of Task
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$_TaskCopyWith<_$_Task> get copyWith =>
-      __$$_TaskCopyWithImpl<_$_Task>(this, _$identity);
+  _$$TaskImplCopyWith<_$TaskImpl> get copyWith =>
+      __$$TaskImplCopyWithImpl<_$TaskImpl>(this, _$identity);
 }
 
 abstract class _Task implements Task {
@@ -213,7 +277,10 @@ abstract class _Task implements Task {
       required final DateTime dueDate,
       required final bool isCompleted,
       required final bool isDeleted,
-      required final bool shouldNotify}) = _$_Task;
+      required final bool shouldNotify,
+      required final int sortOrder,
+      final DateTime? deletedAt,
+      final String? recurrenceInterval}) = _$TaskImpl;
 
   @override
   int? get id;
@@ -228,6 +295,16 @@ abstract class _Task implements Task {
   @override
   bool get shouldNotify;
   @override
-  @JsonKey(ignore: true)
-  _$$_TaskCopyWith<_$_Task> get copyWith => throw _privateConstructorUsedError;
+  int get sortOrder;
+  @override
+  DateTime? get deletedAt;
+  @override
+  String? get recurrenceInterval;
+
+  /// Create a copy of Task
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$TaskImplCopyWith<_$TaskImpl> get copyWith =>
+      throw _privateConstructorUsedError;
 }

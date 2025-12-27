@@ -1,12 +1,10 @@
 PODS:
-  - Flutter (1.0.0)
   - flutter_local_notifications (0.0.1):
-    - Flutter
+    - FlutterMacOS
+  - FlutterMacOS (1.0.0)
   - path_provider_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
-  - permission_handler_apple (9.3.0):
-    - Flutter
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -37,40 +35,36 @@ PODS:
     - sqlite3/session
 
 DEPENDENCIES:
-  - Flutter (from `Flutter`)
-  - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
-  - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
-  - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
-  - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
-  - sqlite3_flutter_libs (from `.symlinks/plugins/sqlite3_flutter_libs/darwin`)
+  - flutter_local_notifications (from `Flutter/ephemeral/.symlinks/plugins/flutter_local_notifications/macos`)
+  - FlutterMacOS (from `Flutter/ephemeral`)
+  - path_provider_foundation (from `Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin`)
+  - shared_preferences_foundation (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin`)
+  - sqlite3_flutter_libs (from `Flutter/ephemeral/.symlinks/plugins/sqlite3_flutter_libs/darwin`)
 
 SPEC REPOS:
   trunk:
     - sqlite3
 
 EXTERNAL SOURCES:
-  Flutter:
-    :path: Flutter
   flutter_local_notifications:
-    :path: ".symlinks/plugins/flutter_local_notifications/ios"
+    :path: Flutter/ephemeral/.symlinks/plugins/flutter_local_notifications/macos
+  FlutterMacOS:
+    :path: Flutter/ephemeral
   path_provider_foundation:
-    :path: ".symlinks/plugins/path_provider_foundation/darwin"
-  permission_handler_apple:
-    :path: ".symlinks/plugins/permission_handler_apple/ios"
+    :path: Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin
   shared_preferences_foundation:
-    :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
+    :path: Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin
   sqlite3_flutter_libs:
-    :path: ".symlinks/plugins/sqlite3_flutter_libs/darwin"
+    :path: Flutter/ephemeral/.symlinks/plugins/sqlite3_flutter_libs/darwin
 
 SPEC CHECKSUMS:
-  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
-  flutter_local_notifications: 0c0b1ae97e741e1521e4c1629a459d04b9aec743
+  flutter_local_notifications: 3805ca215b2fb7f397d78b66db91f6a747af52e4
+  FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   path_provider_foundation: 0b743cbb62d8e47eab856f09262bb8c1ddcfe6ba
-  permission_handler_apple: 9878588469a2b0d0fc1e048d9f43605f92e6cec2
   shared_preferences_foundation: 5086985c1d43c5ba4d5e69a4e8083a389e2909e6
   sqlite3: 73513155ec6979715d3904ef53a8d68892d4032b
   sqlite3_flutter_libs: 86f82662868ee26ff3451f73cac9c5fc2a1f57fa
 
-PODFILE CHECKSUM: 7f2baa40a82fce2cded9197c0b42b63b43a96c69
+PODFILE CHECKSUM: 0d3963a09fc94f580682bd88480486da345dc3f0
 
 COCOAPODS: 1.16.2

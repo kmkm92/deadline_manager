@@ -1,9 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:drift/drift.dart';
 import 'package:deadline_manager/database.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart';
 import 'package:intl/intl.dart';
+import 'package:deadline_manager/utils/date_logic.dart';
 
 final taskListProvider =
     StateNotifierProvider<TaskListNotifier, List<Task>>((ref) {
@@ -17,8 +18,16 @@ class TaskListNotifier extends StateNotifier<List<Task>> {
       FlutterLocalNotificationsPlugin();
 
   TaskListNotifier(this._ref) : super([]) {
-    // _loadTasks();
-    sortTask();
+    _cleanupOldTasks();
+    loadTasks();
+  }
+
+  Future<void> _cleanupOldTasks() async {
+    final db = await _ref.read(provideDatabase.future);
+    // 30日以上前の削除済みタスクを完全削除
+    final threshold = DateTime.now().subtract(const Duration(days: 30));
+
+    await db.deleteOldTasks(threshold);
   }
 
   Future<void> loadTasks() async {
@@ -43,7 +52,16 @@ class TaskListNotifier extends StateNotifier<List<Task>> {
     final db = await _ref.read(provideDatabase.future);
     if (task.id == null) {
       // 新しいタスクを追加
-      final insertId = await db.insertTask(task);
+      // 並び順はすべてのタスクの最後にする
+      final currentTasks = state;
+      int nextSortOrder = 0;
+      if (currentTasks.isNotEmpty) {
+        // Find max sort order (assuming list is sorted or just check all)
+        nextSortOrder = currentTasks.last.sortOrder + 1;
+      }
+
+      final taskWithSort = task.copyWith(sortOrder: nextSortOrder);
+      final insertId = await db.insertTask(taskWithSort);
       if (task.shouldNotify) {
         scheduleNotification(insertId, task.title, task.dueDate);
       }
@@ -55,17 +73,21 @@ class TaskListNotifier extends StateNotifier<List<Task>> {
         scheduleNotification(task.id, task.title, task.dueDate);
       }
     }
-    // loadTasks();
-    await sortTask();
+
+    await loadTasks();
   }
 
 // 論理削除
   Future<void> deleteTask(Task task) async {
     final db = await _ref.read(provideDatabase.future);
-    final deletedTask = task.copyWith(isDeleted: true, shouldNotify: false);
+    final deletedTask = task.copyWith(
+      isDeleted: true,
+      shouldNotify: false,
+      deletedAt: Value(DateTime.now()), // Set deletion timestamp
+    );
     await db.updateTask(deletedTask);
     cancelNotification(task.id);
-    await sortTask();
+    await loadTasks();
   }
 
   Future<void> scheduleNotification(
@@ -75,16 +97,20 @@ class TaskListNotifier extends StateNotifier<List<Task>> {
         NotificationDetails(iOS: iOSPlatformChannelSpecifics);
     final tzDueDate = TZDateTime.from(dueDate, local);
 
-    await flutterLocalNotificationsPlugin.zonedSchedule(
-      id!,
-      DateFormat.yMMMEd('ja').add_jm().format(tzDueDate),
-      title,
-      tzDueDate,
-      platformChannelSpecifics,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      androidAllowWhileIdle: true,
-    );
+    try {
+      await flutterLocalNotificationsPlugin.zonedSchedule(
+        id!,
+        DateFormat.yMMMEd('ja').add_jm().format(tzDueDate),
+        title,
+        tzDueDate,
+        platformChannelSpecifics,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        androidAllowWhileIdle: true,
+      );
+    } catch (e) {
+      // Ignore notification errors
+    }
   }
 
   Future<void> cancelNotification(int? id) async {
@@ -93,60 +119,69 @@ class TaskListNotifier extends StateNotifier<List<Task>> {
 
   Future<void> toggleTaskCompletion(Task task) async {
     final db = await _ref.read(provideDatabase.future);
-    final tzDueDate = TZDateTime.from(task.dueDate, local);
-    final tzDateTimeNow = TZDateTime.from(DateTime.now(), local);
-    // 通知ありのタスクをチェックしたとき
-    if (task.shouldNotify && !task.isCompleted) {
-      cancelNotification(task.id);
-      final updatedTask = task.copyWith(isCompleted: !task.isCompleted);
-      await db.updateTask(updatedTask);
+    final isCompleting = !task.isCompleted;
 
-      // 通知ありのタスクのチェック外すとき
-    } else if (task.shouldNotify && task.isCompleted) {
-      if (tzDueDate.isAfter(tzDateTimeNow)) {
-        scheduleNotification(task.id, task.title, task.dueDate);
-        final updatedTask = task.copyWith(isCompleted: !task.isCompleted);
-        await db.updateTask(updatedTask);
-      } else {
-        final updatedTask = task.copyWith(
-          isCompleted: !task.isCompleted,
-          shouldNotify: !task.shouldNotify,
-        );
-        await db.updateTask(updatedTask);
+    // 1. Handle Recurring Task Creation (only when marking as completed)
+    if (isCompleting &&
+        task.recurrenceInterval != null &&
+        task.recurrenceInterval!.isNotEmpty) {
+      final nextDate =
+          DateLogic.calculateNextDate(task.dueDate, task.recurrenceInterval!);
+      final newTask = task.copyWith(
+        id: const Value(null), // Create new entry
+        dueDate: nextDate,
+        isCompleted: false,
+        sortOrder: state.isNotEmpty ? state.last.sortOrder + 1 : 0,
+      );
+      await addOrUpdateTask(newTask);
+    }
+
+    // 2. Logic for current task
+    // If completing -> cancel notification
+    // If uncompleting (checking off -> active) -> schedule notification if applicable
+    if (isCompleting) {
+      if (task.shouldNotify) {
+        cancelNotification(task.id);
       }
     } else {
-      final updatedTask = task.copyWith(isCompleted: !task.isCompleted);
-      await db.updateTask(updatedTask);
+      // Reactivating task
+      if (task.shouldNotify && task.dueDate.isAfter(DateTime.now())) {
+        scheduleNotification(task.id, task.title, task.dueDate);
+      }
     }
 
-    // loadTasks();
-    await sortTask();
+    final updatedTask = task.copyWith(isCompleted: isCompleting);
+    await db.updateTask(updatedTask);
+
+    await loadTasks();
   }
 
-  Future<void> sortTask() async {
-    final prefs = await SharedPreferences.getInstance();
-    final sort = prefs.getString('sort') ?? 'createTime';
-
-    if (sort == 'createTime') {
-      await loadTasks();
-    } else if (sort == 'dueDateAsc') {
-      await loadTasksSortAsc();
-    } else if (sort == 'dueDateDesc') {
-      await loadTasksSortDesc();
+  // 並び替え処理
+  void reorderTasks(int oldIndex, int newIndex) async {
+    if (oldIndex < newIndex) {
+      newIndex -= 1;
     }
-  }
 
-  Future<void> changeSortOrder(String sortOrder) async {
-    final prefs = await SharedPreferences.getInstance();
-    if (sortOrder == '期限日が早い順') {
-      await loadTasksSortAsc();
-      prefs.setString('sort', 'dueDateAsc');
-    } else if (sortOrder == '期限日が遅い順') {
-      prefs.setString('sort', 'dueDateDesc');
-      await loadTasksSortDesc();
-    } else if (sortOrder == '作成順') {
-      prefs.setString('sort', 'createTime');
-      await loadTasks();
+    // UI state update first for responsiveness
+    final finalTasks = List<Task>.from(state);
+    final item = finalTasks.removeAt(oldIndex);
+    finalTasks.insert(newIndex, item);
+    state = finalTasks; // Immediate UI update
+
+    // DB update
+    final db = await _ref.read(provideDatabase.future);
+
+    // Batch update sortOrder for all tasks to match new list order
+    // This is simple but effective for small lists.
+    // Optimally we only update the range affected.
+    for (int i = 0; i < finalTasks.length; i++) {
+      final task = finalTasks[i];
+      if (task.sortOrder != i) {
+        final updated = task.copyWith(sortOrder: i);
+        await db.updateTask(updated);
+        // Update state task with new sortOrder to keep in sync without reload
+        finalTasks[i] = updated;
+      }
     }
   }
 }

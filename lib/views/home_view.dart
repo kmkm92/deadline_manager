@@ -1,208 +1,388 @@
 import 'package:deadline_manager/database.dart';
-import 'package:deadline_manager/views/delete_task_view.dart';
+import 'package:deadline_manager/views/settings_view.dart';
 import 'package:deadline_manager/views/task_from_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:deadline_manager/view_models/home_view_model.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
-import 'package:settings_ui/settings_ui.dart';
-import 'package:deadline_manager/views/license_view.dart';
+import 'package:deadline_manager/utils/date_logic.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class HomeView extends ConsumerWidget {
+class HomeView extends ConsumerStatefulWidget {
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  _HomeViewState createState() => _HomeViewState();
+}
+
+class _HomeViewState extends ConsumerState<HomeView> {
+  @override
+  void initState() {
+    super.initState();
+
+    Future.delayed(Duration(seconds: 1), _updateTimer);
+  }
+
+  void _updateTimer() {
+    if (mounted) {
+      setState(() {});
+      Future.delayed(Duration(seconds: 1), _updateTimer);
+    }
+  }
+
+  String _getTimeRemaining(DateTime dueDate) {
+    final now = DateTime.now();
+    final difference = dueDate.difference(now);
+
+    if (difference.isNegative) {
+      return '期限切れ';
+    }
+
+    final hours = difference.inHours;
+    final minutes = difference.inMinutes.remainder(60);
+    final seconds = difference.inSeconds.remainder(60);
+
+    if (hours > 24) {
+      return '残り ${difference.inDays}日';
+    }
+    if (hours == 0 && minutes == 0) {
+      return '残り ${seconds}秒';
+    }
+    return '残り ${hours}時間 ${minutes}分';
+  }
+
+  void _showTaskForm([Task? task, String? initialTitle]) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (BuildContext context) {
+        return TaskFormView(task: task, initialTitle: initialTitle);
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final tasks = ref.watch(taskListProvider);
 
-    ref.read(taskListProvider.notifier).sortTask();
-
-    // 1. _showTaskForm関数の定義
-    void _showTaskForm([Task? task]) {
-      showModalBottomSheet(
-        elevation: 0.1,
-        context: context,
-        builder: (BuildContext context) {
-          return ScreenUtilInit(
-            designSize: const Size(926, 428),
-            minTextAdapt: true,
-            splitScreenMode: true,
-            builder: (context, child) {
-              return Container(
-                height: 290.h,
-                padding: EdgeInsets.all(16.0.w),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(20.0.r),
-                    topRight: Radius.circular(20.0.r),
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      appBar: AppBar(
+        title: const Text('リスト'),
+        centerTitle: false,
+        actions: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: '設定',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsView()),
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: tasks.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.task_alt,
+                    size: 64,
+                    color:
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'タスクがありません',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '右下のボタンから新しいタスクを追加しましょう',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                ],
+              ),
+            )
+          : CustomScrollView(
+              slivers: [
+                SliverPadding(
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                  sliver: SliverReorderableList(
+                    itemBuilder: (context, index) {
+                      return _buildTaskCard(context, tasks[index], index);
+                    },
+                    itemCount: tasks.length,
+                    onReorder: (oldIndex, newIndex) {
+                      ref
+                          .read(taskListProvider.notifier)
+                          .reorderTasks(oldIndex, newIndex);
+                    },
+                    proxyDecorator: (child, index, animation) {
+                      return Material(
+                        elevation: 4,
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(16),
+                        child: child,
+                      );
+                    },
                   ),
                 ),
-                child: TaskFormView(task: task),
+                SliverToBoxAdapter(
+                  child: SizedBox(height: 80.h),
+                ),
+              ],
+            ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showTaskForm(),
+        icon: const Icon(Icons.add),
+        label: const Text('新規タスク'),
+        elevation: 4,
+      ),
+    );
+  }
+
+  Widget _buildTaskCard(BuildContext context, Task task, int index) {
+    // Recurrence logic visual
+    final isRecurring =
+        task.recurrenceInterval != null && task.recurrenceInterval!.isNotEmpty;
+    final isExpired = DateTime.now().isAfter(task.dueDate);
+
+    return ReorderableDelayedDragStartListener(
+      key: ValueKey(task.id),
+      index: index,
+      child: Dismissible(
+        key: ValueKey(task.id),
+        direction: DismissDirection.endToStart,
+        background: Container(
+          alignment: Alignment.centerRight,
+          padding: EdgeInsets.only(right: 20.w),
+          margin: EdgeInsets.symmetric(vertical: 4.h),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.errorContainer,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(Icons.delete,
+              color: Theme.of(context).colorScheme.onErrorContainer),
+        ),
+        confirmDismiss: (direction) async {
+          // Confirm deletion
+          final prefs = await SharedPreferences.getInstance();
+          final showConfirmation =
+              prefs.getBool('show_delete_confirmation') ?? true;
+
+          if (!showConfirmation) {
+            return true;
+          }
+
+          bool doNotShowAgain = false;
+
+          return await showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return StatefulBuilder(
+                builder: (context, setState) {
+                  return AlertDialog(
+                    title: const Text("削除確認"),
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text("このタスクをゴミ箱に移動しますか？"),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Checkbox(
+                                value: doNotShowAgain,
+                                onChanged: (val) {
+                                  setState(() {
+                                    doNotShowAgain = val!;
+                                  });
+                                }),
+                            Flexible(
+                              child: GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    doNotShowAgain = !doNotShowAgain;
+                                  });
+                                },
+                                child: const Text("次回から表示しない"),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    actions: <Widget>[
+                      TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          child: const Text("キャンセル")),
+                      TextButton(
+                          onPressed: () async {
+                            if (doNotShowAgain) {
+                              await prefs.setBool(
+                                  'show_delete_confirmation', false);
+                            }
+                            Navigator.of(context).pop(true);
+                          },
+                          child: const Text("削除")),
+                    ],
+                  );
+                },
               );
             },
           );
         },
-        isScrollControlled: true,
-        barrierColor: Colors.black.withOpacity(0.7),
-      );
-    }
-
-    return ScreenUtilInit(
-      designSize: const Size(926, 428),
-      minTextAdapt: true,
-      splitScreenMode: true,
-      builder: (context, child) {
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('リスト'),
-            actions: <Widget>[
-              PopupMenuButton<String>(
-                icon: const Icon(Icons.sort),
-                onSelected: (String value) async {
-                  await ref
-                      .read(taskListProvider.notifier)
-                      .changeSortOrder(value);
-                },
-                itemBuilder: (BuildContext context) {
-                  return ['作成順', '期限日が早い順', '期限日が遅い順'].map((String choice) {
-                    return PopupMenuItem<String>(
-                      value: choice,
-                      child: Text(choice),
-                    );
-                  }).toList();
-                },
-              ),
-            ],
-          ),
-          drawer: Drawer(
-            child: Container(
-              color: const Color.fromRGBO(255, 252, 239, 100),
-              child: Padding(
-                padding: EdgeInsets.only(top: 35.w),
-                child: AppSettingsList(),
-              ),
-            ),
-          ),
-          body: ListView.builder(
-            itemCount: tasks.length + 1,
-            itemBuilder: (context, index) {
-              if (index == tasks.length) {
-                return SizedBox(height: 50.h);
-              }
-              final task = tasks[index];
-              return Card(
-                margin: EdgeInsets.symmetric(vertical: 10.w, horizontal: 15.w),
-                child: ListTile(
-                  leading: Checkbox(
-                    checkColor: Colors.indigo,
-                    value: task.isCompleted,
-                    onChanged: (bool? value) {
-                      // toggleTaskCompletionを使用してタスクの完了状態を更新
-                      ref
-                          .read(taskListProvider.notifier)
-                          .toggleTaskCompletion(task);
-                    },
-                  ),
-                  title: Text(
-                    task.title,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      decoration: task.isCompleted
-                          ? TextDecoration.lineThrough
-                          : null, // タスクが完了している場合、打ち消し線を追加
-                      decorationThickness: 2.5.sp,
+        onDismissed: (direction) {
+          ref.read(taskListProvider.notifier).deleteTask(task);
+        },
+        child: Card(
+          margin: EdgeInsets.symmetric(vertical: 6.h),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: () => _showTaskForm(task),
+            child: Padding(
+              padding: EdgeInsets.all(12.w),
+              child: Row(
+                children: [
+                  // Checkbox or Completed Icon
+                  Transform.scale(
+                    scale: 1.2,
+                    child: Checkbox(
+                      value: task.isCompleted,
+                      shape: const CircleBorder(),
+                      activeColor: Theme.of(context).colorScheme.primary,
+                      onChanged: (bool? value) {
+                        ref
+                            .read(taskListProvider.notifier)
+                            .toggleTaskCompletion(task);
+                      },
                     ),
                   ),
-                  subtitle: Row(
-                    children: [
-                      Text(
-                        DateFormat.yMMMEd('ja').add_jm().format(task.dueDate),
-                      ),
-                      if (task.shouldNotify && !task.isCompleted)
-                        Icon(
-                          Icons.notifications,
-                          size: 35.sp,
+                  SizedBox(width: 8.w),
+                  // Main Content
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          task.title,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(
+                                decoration: task.isCompleted
+                                    ? TextDecoration.lineThrough
+                                    : null,
+                                color: task.isCompleted ? Colors.grey : null,
+                                fontWeight: FontWeight.bold,
+                              ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                    ],
+                        SizedBox(height: 4.h),
+                        Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 4.w,
+                          runSpacing: 2.h,
+                          children: [
+                            Icon(Icons.calendar_today,
+                                size: 14.sp,
+                                color: isExpired && !task.isCompleted
+                                    ? Theme.of(context).colorScheme.error
+                                    : Colors.grey),
+                            Text(
+                              DateLogic.formatToJapanese(task.dueDate),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                      color: isExpired && !task.isCompleted
+                                          ? Theme.of(context).colorScheme.error
+                                          : null,
+                                      fontWeight: isExpired
+                                          ? FontWeight.bold
+                                          : FontWeight.normal),
+                            ),
+                            if (isRecurring) ...[
+                              SizedBox(width: 4.w),
+                              Icon(Icons.repeat,
+                                  size: 14.sp,
+                                  color:
+                                      Theme.of(context).colorScheme.tertiary),
+                              Text(
+                                _getRecurrenceLabel(task.recurrenceInterval),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .tertiary,
+                                    ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () {
-                      ref.read(taskListProvider.notifier).deleteTask(task);
-                    },
-                  ),
-                  onTap: () => _showTaskForm(task), // 2. _showTaskForm関数の呼び出し
-                ),
-              );
-            },
-          ),
-          floatingActionButton: FloatingActionButton(
-            onPressed: () => _showTaskForm(), // 3. _showTaskForm関数の呼び出し
-            child: const Icon(Icons.add),
-          ),
-        );
-      },
-    );
+                  // Time Remaining (Right side)
+                  if (!task.isCompleted && task.shouldNotify)
+                    Container(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                      decoration: BoxDecoration(
+                        color: isExpired
+                            ? Theme.of(context)
+                                .colorScheme
+                                .errorContainer
+                                .withOpacity(0.5)
+                            : Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        _getTimeRemaining(task.dueDate),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: isExpired
+                                  ? Theme.of(context).colorScheme.error
+                                  : Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ), // InkWell
+        ), // Card
+      ), // Dismissible
+    ); // ReorderableDelayedDragStartListener
   }
-}
 
-class AppSettingsList extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return ScreenUtilInit(
-      designSize: const Size(926, 428),
-      minTextAdapt: true,
-      splitScreenMode: true,
-      builder: (context, child) {
-        return Padding(
-          padding: EdgeInsets.only(top: 45.0.h),
-          child: SettingsList(
-            sections: [
-              SettingsSection(
-                // title: Text('設定'),
-                tiles: [
-                  SettingsTile(
-                    title: const Text('ゴミ箱'),
-                    leading: const Icon(Icons.delete_outline),
-                    onPressed: (BuildContext context) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => DeleteTaskView()),
-                      );
-                    },
-                  ),
-                  SettingsTile(
-                    title: const Text('ライセンス'),
-                    leading: const Icon(Icons.policy),
-                    onPressed: (BuildContext context) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const LicenseView()),
-                      );
-                    },
-                  ),
-                  // 他の設定項目を追加
-                ],
-              ),
-              SettingsSection(
-                // title: Text('その他'),
-                tiles: [
-                  SettingsTile(
-                    title: const Text('バージョン'),
-                    leading: const Icon(Icons.info),
-                    trailing: const Text('1.0.0'),
-                    // onPressed: (BuildContext context) {
-                    //   // アプリの情報画面への遷移などの処理をここに書く
-                    // },
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
-    );
+  String _getRecurrenceLabel(String? interval) {
+    switch (interval) {
+      case 'daily':
+        return '毎日';
+      case 'weekly':
+        return '毎週';
+      case 'monthly':
+        return '毎月';
+      case 'yearly':
+        return '毎年';
+      default:
+        return '';
+    }
   }
 }

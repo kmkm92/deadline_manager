@@ -1,6 +1,8 @@
 import 'package:deadline_manager/database.dart';
 import 'package:deadline_manager/views/settings_view.dart';
 import 'package:deadline_manager/views/task_from_view.dart';
+import 'package:deadline_manager/widgets/banner_ad_widget.dart';
+import 'package:deadline_manager/services/ad_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:deadline_manager/view_models/home_view_model.dart';
@@ -139,6 +141,8 @@ class _HomeViewState extends ConsumerState<HomeView>
           _buildTaskList(recurringTasks),
         ],
       ),
+      // 画面下部にバナー広告を配置
+      bottomNavigationBar: BannerAdWidget(placement: AdPlacement.homeList),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showTaskForm(),
         icon: const Icon(Icons.add),
@@ -150,31 +154,54 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   Widget _buildTaskList(List<Task> tasks) {
     if (tasks.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.task_alt,
-              size: 64,
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'リマインダーがありません',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+      // LayoutBuilderでレイアウトに合わせて表示し、オーバーフローを防ぐ
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.task_alt,
+                        size: 64,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'リマインダーがありません',
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
+                                ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '右下のボタンから新しいリマインダーを追加しましょう',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                            ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
+                ),
+              ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              '右下のボタンから新しいリマインダーを追加しましょう',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-            ),
-          ],
-        ),
+          );
+        },
       );
     }
 

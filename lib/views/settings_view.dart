@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:deadline_manager/view_models/theme_view_model.dart';
 import 'package:app_settings/app_settings.dart';
+import 'package:deadline_manager/widgets/banner_ad_widget.dart';
+import 'package:deadline_manager/services/ad_service.dart';
 
 class SettingsView extends ConsumerStatefulWidget {
   const SettingsView({Key? key}) : super(key: key);
@@ -173,6 +175,8 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
           ),
         ],
       ),
+      // 画面下部にバナー広告を配置
+      bottomNavigationBar: BannerAdWidget(placement: AdPlacement.settings),
     );
   }
 

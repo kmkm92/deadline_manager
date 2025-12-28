@@ -1,0 +1,18 @@
+# 本番用AdMob広告ID（このファイルはGitにプッシュしない）
+#
+# 使用方法：
+# 本番ビルド時に以下のコマンドで各IDを指定
+#
+# flutter build ios \
+#   --dart-define=BANNER_AD_HOME=ca-app-pub-xxx/home-id \
+#   --dart-define=BANNER_AD_TASK_FORM=ca-app-pub-xxx/form-id \
+#   --dart-define=BANNER_AD_SETTINGS=ca-app-pub-xxx/settings-id
+
+# 一覧画面下部
+BANNER_AD_HOME=ca-app-pub-XXXXX/一覧用ID
+
+# 追加・編集画面
+BANNER_AD_TASK_FORM=ca-app-pub-XXXXX/フォーム用ID
+
+# 設定画面
+BANNER_AD_SETTINGS=ca-app-pub-XXXXX/設定用ID

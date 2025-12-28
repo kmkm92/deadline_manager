@@ -8,6 +8,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'views/home_view.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:deadline_manager/view_models/theme_view_model.dart';
+import 'package:deadline_manager/services/ad_service.dart';
 
 Future<void> main() async {
   initializeDateFormatting('ja');
@@ -29,6 +30,9 @@ Future<void> main() async {
           requestBadgePermission: true,
           requestAlertPermission: true));
   flutterLocalNotificationsPlugin.initialize(initializationSettings);
+
+  // AdMob初期化
+  await AdService.initialize();
 
   runApp(ProviderScope(child: DeadlineManagerApp()));
 }

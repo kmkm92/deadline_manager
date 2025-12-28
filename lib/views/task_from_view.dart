@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:deadline_manager/view_models/home_view_model.dart';
 import 'package:deadline_manager/database.dart';
 import 'package:deadline_manager/utils/date_logic.dart';
+import 'package:deadline_manager/widgets/banner_ad_widget.dart';
+import 'package:deadline_manager/services/ad_service.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class TaskFormView extends ConsumerStatefulWidget {
@@ -155,6 +157,9 @@ class _TaskFormViewState extends ConsumerState<TaskFormView>
                   ],
                 ),
               ),
+              // ボトムシート下部にバナー広告を配置
+              bottomNavigationBar:
+                  BannerAdWidget(placement: AdPlacement.taskForm),
             ),
           ),
         ],

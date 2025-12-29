@@ -12,6 +12,10 @@ class Tasks extends Table {
   BoolColumn get isCompleted => boolean().withDefault(const Constant(false))();
   BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
   BoolColumn get shouldNotify => boolean().withDefault(const Constant(true))();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+  TextColumn get recurrenceInterval =>
+      text().nullable()(); // 'daily', 'weekly', etc.
 }
 
 @freezed
@@ -23,6 +27,9 @@ class Task with _$Task {
     required bool isCompleted,
     required bool isDeleted,
     required bool shouldNotify,
+    required int sortOrder,
+    DateTime? deletedAt,
+    String? recurrenceInterval,
   }) = _Task;
 
   factory Task.fromRow(Map<String, dynamic> row) {
@@ -33,6 +40,11 @@ class Task with _$Task {
       isCompleted: row['isCompleted'] as bool,
       isDeleted: row['isDeleted'] as bool,
       shouldNotify: row['shouldNotify'] as bool,
+      sortOrder: row['sortOrder'] as int,
+      deletedAt: row['deletedAt'] != null
+          ? DateTime.parse(row['deletedAt'] as String)
+          : null,
+      recurrenceInterval: row['recurrenceInterval'] as String?,
     );
   }
 }

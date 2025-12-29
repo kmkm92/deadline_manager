@@ -13,26 +13,52 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(QueryExecutor e) : super(e);
 
   @override
-  int get schemaVersion => 2; // 1から2に更新
+  int get schemaVersion => 5; // 4 to 5
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onUpgrade: (migrator, from, to) async {
-          if (from == 1) {
+          if (from < 2) {
             // バージョン1から2へのマイグレーション
             await migrator.addColumn(tasks, tasks.isCompleted);
             await migrator.addColumn(tasks, tasks.isDeleted);
             await migrator.addColumn(tasks, tasks.shouldNotify);
           }
+          if (from < 3) {
+            // バージョン3へのマイグレーション
+            await migrator.addColumn(tasks, tasks.recurrenceInterval);
+          }
+          if (from < 4) {
+            // バージョン4へのマイグレーション
+            await migrator.addColumn(tasks, tasks.sortOrder);
+          }
+          if (from < 5) {
+            // バージョン5へのマイグレーション
+            await migrator.addColumn(tasks, tasks.deletedAt);
+          }
         },
       );
-  // 全件取得（作成順）
-  Future<List<Task>> getAllTasks() =>
-      (select(tasks)..where((table) => table.isDeleted.equals(false))).get();
+  // 全件取得（並び替え順）
+  Future<List<Task>> getAllTasks() => (select(tasks)
+        ..where((table) => table.isDeleted.equals(false))
+        ..orderBy([
+          (table) =>
+              OrderingTerm(expression: table.sortOrder, mode: OrderingMode.asc)
+        ]))
+      .get();
 
   // 全件取得（削除されたタスク）
   Future<List<Task>> getAllDeleteTasks() =>
       (select(tasks)..where((table) => table.isDeleted.equals(true))).get();
+
+  // 古いタスクを完全に削除
+  Future<int> deleteOldTasks(DateTime threshold) {
+    return (delete(tasks)
+          ..where((t) =>
+              t.isDeleted.equals(true) &
+              t.deletedAt.isSmallerThanValue(threshold)))
+        .go();
+  }
 
   // 期限遅い順
   Future<List<Task>> getAllTasksSortedDesc() => (select(tasks)

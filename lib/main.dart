@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:deadline_manager/theme/app_theme.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:timezone/data/latest_all.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'views/home_view.dart';
 import 'package:timezone/timezone.dart' as tz;
+import 'package:deadline_manager/view_models/theme_view_model.dart';
+import 'package:deadline_manager/services/ad_service.dart';
 
 Future<void> main() async {
   initializeDateFormatting('ja');
@@ -20,8 +24,15 @@ Future<void> main() async {
           requestBadgePermission: true,
           requestAlertPermission: true,
           onDidReceiveLocalNotification:
-              (int id, String? title, String? body, String? payload) async {}));
+              (int id, String? title, String? body, String? payload) async {}),
+      macOS: DarwinInitializationSettings(
+          requestSoundPermission: true,
+          requestBadgePermission: true,
+          requestAlertPermission: true));
   flutterLocalNotificationsPlugin.initialize(initializationSettings);
+
+  // AdMob初期化
+  await AdService.initialize();
 
   runApp(ProviderScope(child: DeadlineManagerApp()));
 }
@@ -29,32 +40,20 @@ Future<void> main() async {
 class DeadlineManagerApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return MaterialApp(
-        title: 'Deadline Manager',
-        theme: ThemeData(
-          primarySwatch: createMaterialColor(Color.fromRGBO(255, 252, 239, 1)),
-        ),
-        home: HomeView(),
-        debugShowCheckedModeBanner: false);
-  }
-}
-
-MaterialColor createMaterialColor(Color color) {
-  List strengths = <double>[.05];
-  Map<int, Color> swatch = {};
-  final int r = color.red, g = color.green, b = color.blue;
-
-  for (int i = 1; i < 10; i++) {
-    strengths.add(0.1 * i);
-  }
-  strengths.forEach((strength) {
-    final double ds = 0.5 - strength;
-    swatch[(strength * 1000).round()] = Color.fromRGBO(
-      r + ((ds < 0 ? r : (255 - r)) * ds).round(),
-      g + ((ds < 0 ? g : (255 - g)) * ds).round(),
-      b + ((ds < 0 ? b : (255 - b)) * ds).round(),
-      1,
+    return ScreenUtilInit(
+      designSize: const Size(375, 812), // Standard mobile size
+      minTextAdapt: true,
+      splitScreenMode: true,
+      builder: (context, child) {
+        return MaterialApp(
+          title: 'Deadline Manager',
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: ref.watch(themeViewModelProvider),
+          home: HomeView(),
+          debugShowCheckedModeBanner: false,
+        );
+      },
     );
-  });
-  return MaterialColor(color.value, swatch);
+  }
 }

@@ -62,8 +62,13 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (hours > 24) {
       return '残り ${difference.inDays}日';
     }
+    // 1分未満（60秒未満）は秒表示
     if (hours == 0 && minutes == 0) {
       return '残り $seconds秒';
+    }
+    // 1時間未満は分表示のみ
+    if (hours == 0) {
+      return '残り $minutes分';
     }
     return '残り $hours時間 $minutes分';
   }
@@ -359,7 +364,13 @@ class _HomeViewState extends ConsumerState<HomeView>
       BuildContext context, Task task, int index, bool isDarkMode) {
     final isRecurring =
         task.recurrenceInterval != null && task.recurrenceInterval!.isNotEmpty;
-    final isExpired = DateTime.now().isAfter(task.dueDate);
+    // 繰り返しタスクの場合、次の期限を考慮してisExpiredを判定
+    DateTime effectiveDueDate = task.dueDate;
+    if (isRecurring && effectiveDueDate.isBefore(DateTime.now())) {
+      effectiveDueDate = DateLogic.getNextValidFutureDate(
+          effectiveDueDate, task.recurrenceInterval);
+    }
+    final isExpired = DateTime.now().isAfter(effectiveDueDate);
 
     return Dismissible(
       key: ValueKey(task.id),

@@ -57,14 +57,14 @@ class _HomeViewState extends ConsumerState<HomeView>
 
     final hours = difference.inHours;
     final minutes = difference.inMinutes.remainder(60);
-    final seconds = difference.inSeconds.remainder(60);
 
     if (hours > 24) {
       return '残り ${difference.inDays}日';
     }
     // 1分未満（60秒未満）は秒表示
-    if (hours == 0 && minutes == 0) {
-      return '残り $seconds秒';
+    final totalSeconds = difference.inSeconds;
+    if (totalSeconds < 60) {
+      return '残り $totalSeconds秒';
     }
     // 1時間未満は分表示のみ
     if (hours == 0) {
@@ -304,10 +304,41 @@ class _HomeViewState extends ConsumerState<HomeView>
       return _buildEmptyState(isDarkMode);
     }
 
-    return ListView.builder(
+    final isRecurring = _selectedSegment == 1;
+
+    return ReorderableListView.builder(
       key: ValueKey(_selectedSegment),
       padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 100.h),
       itemCount: tasks.length,
+      onReorder: (oldIndex, newIndex) {
+        ref.read(taskListProvider.notifier).reorderTasks(
+              oldIndex,
+              newIndex,
+              isRecurring: isRecurring,
+            );
+      },
+      proxyDecorator: (child, index, animation) {
+        // ドラッグ中のアイテムにエフェクトを追加
+        return AnimatedBuilder(
+          animation: animation,
+          builder: (context, child) {
+            final double elevation = Tween<double>(begin: 0, end: 12)
+                .animate(CurvedAnimation(
+                  parent: animation,
+                  curve: Curves.easeInOut,
+                ))
+                .value;
+            return Material(
+              color: Colors.transparent,
+              elevation: elevation,
+              shadowColor: AppTheme.primaryColor.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(16),
+              child: child,
+            );
+          },
+          child: child,
+        );
+      },
       itemBuilder: (context, index) {
         return _buildTaskCard(context, tasks[index], index, isDarkMode);
       },

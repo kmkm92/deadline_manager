@@ -198,32 +198,50 @@ class TaskListNotifier extends StateNotifier<List<Task>> {
     await loadTasks();
   }
 
-  // 並び替え処理
-  void reorderTasks(int oldIndex, int newIndex) async {
+  // 並び替え処理（タブ別対応）
+  void reorderTasks(int oldIndex, int newIndex,
+      {required bool isRecurring}) async {
     if (oldIndex < newIndex) {
       newIndex -= 1;
     }
 
-    // UI state update first for responsiveness
-    final finalTasks = List<Task>.from(state);
-    final item = finalTasks.removeAt(oldIndex);
-    finalTasks.insert(newIndex, item);
-    state = finalTasks; // Immediate UI update
+    // 全タスクリストから対象のタスクをフィルタリング
+    final allTasks = List<Task>.from(state);
+    final filteredTasks = allTasks
+        .where((t) => isRecurring
+            ? (t.recurrenceInterval != null && t.recurrenceInterval!.isNotEmpty)
+            : (t.recurrenceInterval == null || t.recurrenceInterval!.isEmpty))
+        .toList();
 
-    // DB update
+    // フィルタリングされたリスト内で並び替え
+    final item = filteredTasks.removeAt(oldIndex);
+    filteredTasks.insert(newIndex, item);
+
+    // sortOrderを更新（フィルタリングされたリスト内での順序を維持）
     final db = await _ref.read(provideDatabase.future);
 
-    // Batch update sortOrder for all tasks to match new list order
-    // This is simple but effective for small lists.
-    // Optimally we only update the range affected.
-    for (int i = 0; i < finalTasks.length; i++) {
-      final task = finalTasks[i];
+    for (int i = 0; i < filteredTasks.length; i++) {
+      final task = filteredTasks[i];
       if (task.sortOrder != i) {
         final updated = task.copyWith(sortOrder: i);
         await db.updateTask(updated);
-        // Update state task with new sortOrder to keep in sync without reload
-        finalTasks[i] = updated;
+        filteredTasks[i] = updated;
       }
     }
+
+    // 全タスクリストを再構築
+    final otherTasks = allTasks
+        .where((t) => isRecurring
+            ? (t.recurrenceInterval == null || t.recurrenceInterval!.isEmpty)
+            : (t.recurrenceInterval != null &&
+                t.recurrenceInterval!.isNotEmpty))
+        .toList();
+
+    // 両方のリストをsortOrderでソートして結合
+    filteredTasks.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+    otherTasks.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+
+    state = [...filteredTasks, ...otherTasks]
+      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
   }
 }

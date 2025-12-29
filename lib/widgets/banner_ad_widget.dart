@@ -51,8 +51,16 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
     super.dispose();
   }
 
+  // TODO: スクリーンショット撮影後は false に戻すこと
+  static const bool _hideAdsForScreenshot = false;
+
   @override
   Widget build(BuildContext context) {
+    // アプリストアのスクリーンショット用に広告を非表示
+    if (_hideAdsForScreenshot) {
+      return const SizedBox.shrink();
+    }
+
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final backgroundColor =
         isDarkMode ? const Color(0xFF1E1E1E) : const Color(0xFFF8F7FC);

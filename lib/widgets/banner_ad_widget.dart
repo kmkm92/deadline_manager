@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:deadline_manager/services/ad_service.dart';
+import 'package:deadline_manager/theme/app_theme.dart';
 
-/// 再利用可能なバナー広告ウィジェット
+/// 再利用可能なバナー広告ウィジェット（モダンスタイル対応）
 class BannerAdWidget extends StatefulWidget {
   final AdPlacement placement;
 
@@ -25,7 +26,6 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
     _loadAd();
   }
 
-  /// バナー広告をロード
   void _loadAd() {
     _bannerAd = BannerAd(
       adUnitId: AdService.getBannerAdUnitId(widget.placement),
@@ -53,21 +53,49 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor =
+        isDarkMode ? const Color(0xFF1E1E1E) : const Color(0xFFF8F7FC);
+
     if (!_isLoaded || _bannerAd == null) {
-      // 広告がロードされるまでの高さを確保（ちらつき防止）
-      return const SafeArea(
+      return SafeArea(
         top: false,
-        child: SizedBox(height: 50),
+        child: Container(
+          height: 50,
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            border: Border(
+              top: BorderSide(
+                color: isDarkMode
+                    ? AppTheme.secondaryColor.withOpacity(0.1)
+                    : AppTheme.primaryColor.withOpacity(0.08),
+                width: 1,
+              ),
+            ),
+          ),
+        ),
       );
     }
 
     return SafeArea(
       top: false,
       child: Container(
-        color: Theme.of(context).colorScheme.surface,
-        width: _bannerAd!.size.width.toDouble(),
-        height: _bannerAd!.size.height.toDouble(),
-        child: AdWidget(ad: _bannerAd!),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          border: Border(
+            top: BorderSide(
+              color: isDarkMode
+                  ? AppTheme.secondaryColor.withOpacity(0.1)
+                  : AppTheme.primaryColor.withOpacity(0.08),
+              width: 1,
+            ),
+          ),
+        ),
+        child: SizedBox(
+          width: _bannerAd!.size.width.toDouble(),
+          height: _bannerAd!.size.height.toDouble(),
+          child: AdWidget(ad: _bannerAd!),
+        ),
       ),
     );
   }
